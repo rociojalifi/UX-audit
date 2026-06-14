@@ -1,7 +1,11 @@
 import { useRef, useState } from 'react';
 import {
+  Accessibility,
+  BadgeCheck,
+  Eye,
   ClipboardCheck,
   MousePointerClick,
+  Navigation,
   PanelsTopLeft,
   Rocket,
   Sparkles,
@@ -13,26 +17,60 @@ import FeatureCard from './components/FeatureCard';
 import AuditForm from './components/AuditForm';
 import AuditReport from './components/AuditReport';
 import CTASection from './components/CTASection';
+import ExampleInsightCard from './components/ExampleInsightCard';
+import TrustSection from './components/TrustSection';
+import CreatorSection from './components/CreatorSection';
+import LimitationsSection from './components/LimitationsSection';
 import Footer from './components/Footer';
 
 const checks = [
   {
     icon: PanelsTopLeft,
-    title: 'First-screen clarity',
+    title: 'Clarity of your offer',
     description:
-      'Checks whether visitors can quickly understand what you offer, who it is for, and what to do next.',
+      'Can visitors quickly understand what you do, who it is for, and why it matters?',
   },
   {
     icon: MousePointerClick,
-    title: 'Conversion flow',
+    title: 'CTA visibility',
     description:
-      'Looks at calls-to-action, navigation, and page structure through a practical UX lens.',
+      'Checks whether the main action is easy to find, understand, and repeat at the right moments.',
+  },
+  {
+    icon: Navigation,
+    title: 'Navigation flow',
+    description:
+      'Looks for confusing paths, unnecessary choices, or menus that slow people down.',
+  },
+  {
+    icon: BadgeCheck,
+    title: 'Trust signals',
+    description:
+      'Reviews whether proof, expertise, reviews, and credibility cues support the decision to act.',
+  },
+  {
+    icon: Eye,
+    title: 'Visual hierarchy',
+    description:
+      'Checks whether headings, sections, spacing, and emphasis guide attention clearly.',
+  },
+  {
+    icon: Accessibility,
+    title: 'Accessibility basics',
+    description:
+      'Flags basic readability, contrast, labeling, and content clarity concerns when inferable.',
   },
   {
     icon: Sparkles,
-    title: 'Visual polish',
+    title: 'Conversion friction',
     description:
-      'Reviews typography, spacing, consistency, and hierarchy so the site feels more intentional.',
+      'Identifies unclear steps, weak messaging, or missing context that may reduce enquiries.',
+  },
+  {
+    icon: Rocket,
+    title: 'Mobile experience',
+    description:
+      'Notes mobile and responsive concerns when they can be inferred from the available page structure.',
   },
 ];
 
@@ -96,22 +134,26 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-mist font-sans text-ink">
+    <div className="min-h-screen bg-bg font-sans text-text">
       <Navbar />
       <main>
         <HeroSection />
 
-        <section id="checks" className="bg-white py-20">
+        <section id="checks" className="bg-surface py-20">
           <div className="mx-auto max-w-7xl px-5 sm:px-8">
             <div className="mb-10 max-w-3xl">
-              <p className="text-sm font-bold uppercase tracking-[0.18em] text-coral">
-                What the tool checks
+              <p className="text-sm font-bold uppercase tracking-[0.18em] text-accent">
+                What Clerify checks
               </p>
-              <h2 className="mt-3 text-3xl font-black text-ink sm:text-5xl">
-                A mini-audit with the eyes of a UX/UI designer.
+              <h2 className="mt-3 font-heading text-3xl font-extrabold text-text sm:text-5xl">
+                A practical audit of the moments that make websites feel clear or confusing
               </h2>
+              <p className="mt-5 text-lg leading-8 text-muted">
+                Clerify looks at the page through a UX/UI lens so the report feels
+                actionable, not like a generic AI summary.
+              </p>
             </div>
-            <div className="grid gap-5 md:grid-cols-3">
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
               {checks.map((feature) => (
                 <FeatureCard key={feature.title} {...feature} />
               ))}
@@ -119,18 +161,22 @@ export default function App() {
           </div>
         </section>
 
-        <section className="bg-mist py-20">
+        <TrustSection />
+        <CreatorSection />
+        <ExampleInsightCard />
+
+        <section className="bg-surface py-20">
           <div className="mx-auto grid max-w-7xl gap-12 px-5 sm:px-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-start">
             <div>
-              <p className="text-sm font-bold uppercase tracking-[0.18em] text-coral">
+              <p className="text-sm font-bold uppercase tracking-[0.18em] text-accent">
                 Who it is for
               </p>
-              <h2 className="mt-3 text-3xl font-black text-ink sm:text-5xl">
-                For websites that are almost there, but not quite converting.
+              <h2 className="mt-3 font-heading text-3xl font-extrabold text-text sm:text-5xl">
+                For websites that are almost there, but not quite converting
               </h2>
-              <p className="mt-5 text-lg leading-8 text-ink/65">
-                This MVP gives visitors a fast taste of expert UX/UI thinking, then
-                makes it easy to ask for hands-on help.
+              <p className="mt-5 text-lg leading-8 text-muted">
+                Clerify helps small business owners, founders, and service providers
+                understand what to improve before investing in a redesign or deeper audit.
               </p>
             </div>
             <div className="grid gap-5 md:grid-cols-3 lg:grid-cols-1">
@@ -141,6 +187,7 @@ export default function App() {
           </div>
         </section>
 
+        <LimitationsSection />
         <CTASection />
         <AuditForm onSubmit={handleAuditSubmit} isLoading={isLoading} apiError={error} />
 
