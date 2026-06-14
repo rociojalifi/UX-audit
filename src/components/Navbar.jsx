@@ -8,7 +8,7 @@ export default function Navbar() {
           <span className="grid h-9 w-9 place-items-center rounded-full bg-ink text-white">
             <Sparkles size={18} aria-hidden="true" />
           </span>
-          UX Pulse
+          Clerify
         </a>
         <a
           href="#audit"
