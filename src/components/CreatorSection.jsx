@@ -1,4 +1,4 @@
-import { ArrowRight, BadgeCheck, Code2, Layers3, Palette, Sparkles } from 'lucide-react';
+import { ArrowRight, BadgeCheck, Code2, Eye, Palette, Sparkles } from 'lucide-react';
 import rocioPhoto from '../assets/rocio-jalifi.jpeg';
 
 const credibilityPoints = [
@@ -8,7 +8,7 @@ const credibilityPoints = [
   'Helps small businesses improve trust, clarity, and conversion',
 ];
 
-const tags = ['UX/UI', 'Frontend', 'Website audits', 'Redesigns'];
+const tags = ['UX/UI', 'Website audits', 'Redesigns', 'Clarity'];
 
 export default function CreatorSection() {
   return (
@@ -95,9 +95,9 @@ export default function CreatorSection() {
           </div>
 
           <div className="mt-5 grid gap-4 sm:grid-cols-3">
-            <MiniMetric icon={Code2} label="Builds" value="Frontend" />
-            <MiniMetric icon={Palette} label="Improves" value="UX/UI" />
-            <MiniMetric icon={Layers3} label="Focus" value="Clarity" />
+            <MiniMetric icon={Code2} label="Experience" value="Software" />
+            <MiniMetric icon={Palette} label="Service" value="UX/UI" />
+            <MiniMetric icon={Eye} label="Focus" value="Clarity" />
           </div>
 
           <div className="mt-5 flex flex-wrap gap-2">
