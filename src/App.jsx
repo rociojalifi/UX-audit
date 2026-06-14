@@ -58,21 +58,41 @@ const audiences = [
 ];
 
 export default function App() {
-  const [submittedUrl, setSubmittedUrl] = useState('');
+  const [auditResult, setAuditResult] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
   const reportRef = useRef(null);
 
-  const handleAuditSubmit = (formData) => {
+  const handleAuditSubmit = async (formData) => {
     setIsLoading(true);
-    setSubmittedUrl('');
+    setError('');
+    setAuditResult(null);
 
-    window.setTimeout(() => {
-      setSubmittedUrl(formData.websiteUrl);
-      setIsLoading(false);
+    try {
+      const response = await fetch('/api/audit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          url: formData.websiteUrl,
+          businessType: formData.businessType,
+          mainGoal: formData.mainGoal,
+        }),
+      });
+      const payload = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        throw new Error(payload?.error?.message || 'The audit could not be generated.');
+      }
+
+      setAuditResult(payload);
       window.setTimeout(() => {
         reportRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 100);
-    }, 900);
+    } catch (requestError) {
+      setError(requestError.message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -122,10 +142,12 @@ export default function App() {
         </section>
 
         <CTASection />
-        <AuditForm onSubmit={handleAuditSubmit} isLoading={isLoading} />
+        <AuditForm onSubmit={handleAuditSubmit} isLoading={isLoading} apiError={error} />
 
         <div ref={reportRef}>
-          {submittedUrl && <AuditReport submittedUrl={submittedUrl} />}
+          {auditResult?.audit && (
+            <AuditReport audit={auditResult.audit} source={auditResult.source} />
+          )}
         </div>
       </main>
       <Footer />

@@ -18,7 +18,7 @@ function isValidUrl(value) {
   }
 }
 
-export default function AuditForm({ onSubmit, isLoading }) {
+export default function AuditForm({ onSubmit, isLoading, apiError }) {
   const [formData, setFormData] = useState({
     websiteUrl: '',
     businessType: '',
@@ -111,7 +111,11 @@ export default function AuditForm({ onSubmit, isLoading }) {
             </div>
           </div>
 
-          {error && <p className="mt-4 text-sm font-semibold text-coral">{error}</p>}
+          {(error || apiError) && (
+            <div className="mt-5 rounded-2xl border border-coral/25 bg-coral/10 p-4 text-sm font-semibold leading-6 text-ink">
+              {error || apiError}
+            </div>
+          )}
 
           <button
             type="submit"
@@ -119,7 +123,7 @@ export default function AuditForm({ onSubmit, isLoading }) {
             className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full bg-ink px-6 py-4 font-bold text-white shadow-soft transition hover:-translate-y-0.5 hover:bg-coral disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto"
           >
             <Search size={18} aria-hidden="true" />
-            {isLoading ? 'Auditing your website...' : 'Generate mini-audit'}
+            {isLoading ? 'Fetching context and auditing...' : 'Generate AI mini-audit'}
           </button>
         </form>
       </div>

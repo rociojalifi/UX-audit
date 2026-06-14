@@ -1,41 +1,94 @@
 export const mockAudit = {
-  firstImpression:
-    'The website has a solid foundation, but the first screen asks visitors to work too hard to understand the offer. The visual style feels credible, yet the message and main next step need more confidence and focus.',
+  summary: {
+    websiteUrl: 'https://example.com',
+    businessType: 'Demo business',
+    mainGoal: 'Improve clarity',
+    firstImpression:
+      'This development fallback is based on sample content, not a live AI result. The page appears credible, but the offer and primary next step should become easier to understand within the first few seconds.',
+    overallScore: 72,
+  },
   positives: [
-    'The brand already feels trustworthy enough to make visitors pause and explore.',
-    'There are clear signs of expertise, especially in the way the offer is presented.',
-    'The page has enough content to support a stronger conversion path with better structure.',
+    {
+      title: 'Trustworthy foundation',
+      description: 'The brand already has enough structure to feel credible to a new visitor.',
+    },
+    {
+      title: 'Clear service potential',
+      description: 'The page has content that could support a stronger conversion path.',
+    },
+    {
+      title: 'Room for focused improvements',
+      description: 'Most opportunities are practical messaging, hierarchy, and CTA fixes.',
+    },
   ],
   uxIssues: [
-    'The main call-to-action is not clear or repeated enough for quick decision-making.',
-    'The navigation could be simplified so visitors immediately know where to go next.',
-    'The homepage does not explain the offer fast enough above the fold.',
+    {
+      title: 'Primary CTA needs more clarity',
+      description: 'The main action is not repeated or framed strongly enough.',
+      impact: 'high',
+      recommendation: 'Make the primary CTA specific and place it near key decision points.',
+    },
+    {
+      title: 'Offer explanation is slow',
+      description: 'Visitors may need to read too much before understanding the value.',
+      impact: 'high',
+      recommendation: 'Clarify the offer, audience, and outcome in the hero section.',
+    },
+    {
+      title: 'Page flow could be tighter',
+      description: 'The content order can better guide visitors from problem to proof to action.',
+      impact: 'medium',
+      recommendation: 'Reorder sections around visitor decision-making.',
+    },
   ],
   uiIssues: [
-    'Typography hierarchy is weak, making important messages feel similar to secondary details.',
-    'Button styles are inconsistent, which makes the primary action feel less intentional.',
-    'Spacing between sections feels uneven and reduces the sense of polish.',
+    {
+      title: 'Typography hierarchy is weak',
+      description: 'Important messages do not stand apart enough from supporting text.',
+      impact: 'medium',
+      recommendation: 'Use clearer heading sizes, weights, and spacing.',
+    },
+    {
+      title: 'Button styles feel inconsistent',
+      description: 'CTA treatment should feel more intentional and recognizable.',
+      impact: 'medium',
+      recommendation: 'Create one primary button style and use it consistently.',
+    },
+    {
+      title: 'Section spacing feels uneven',
+      description: 'Visual rhythm can be improved to make the page feel more premium.',
+      impact: 'low',
+      recommendation: 'Standardize section padding and content width.',
+    },
   ],
   priorityFixes: [
     {
-      priority: 'High priority',
-      title: 'Clarify the hero message and CTA',
-      description:
-        'Make the offer, target audience, and next step obvious within the first few seconds.',
+      priority: 'high',
+      title: 'Rewrite the hero for instant clarity',
+      description: 'Make the offer, audience, benefit, and CTA obvious above the fold.',
     },
     {
-      priority: 'Medium priority',
-      title: 'Simplify the page flow',
-      description:
-        'Reorder the content so visitors move naturally from problem, to value, to proof, to action.',
+      priority: 'medium',
+      title: 'Simplify the conversion path',
+      description: 'Guide visitors through proof, benefits, and action in a cleaner order.',
     },
     {
-      priority: 'Low priority',
+      priority: 'low',
       title: 'Polish the visual system',
-      description:
-        'Tighten typography, spacing, and button styles so the experience feels more premium.',
+      description: 'Tighten typography, buttons, spacing, and section rhythm.',
     },
   ],
   finalRecommendation:
-    'Start by improving clarity above the fold. A sharper headline, stronger CTA, and cleaner hierarchy will help visitors understand the value faster and make the rest of the page work harder.',
+    'Start with clarity above the fold. A sharper headline and stronger CTA will make every later section work harder.',
+  ctaSuggestion: {
+    headline: 'Want me to improve this for you?',
+    body: 'Turn the audit into a clearer homepage, stronger CTA, and a more confident user journey.',
+    primaryButton: 'Book a UX/UI review',
+    secondaryButton: 'Get a homepage redesign',
+  },
+  limitations: [
+    'This is development fallback data, not a live AI audit.',
+    'A real audit requires fetched website context and an OpenAI API key.',
+    'Visual and mobile feedback is limited until screenshot analysis is added.',
+  ],
 };
