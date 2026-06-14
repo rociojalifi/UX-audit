@@ -116,10 +116,18 @@ export default function App() {
           mainGoal: formData.mainGoal,
         }),
       });
-      const payload = await response.json().catch(() => null);
+      const responseText = await response.text();
+      const payload = parseApiResponse(responseText);
 
       if (!response.ok) {
-        throw new Error(payload?.error?.message || 'The audit could not be generated.');
+        throw new Error(
+          payload?.error?.message ||
+            `The audit could not be generated. Server returned status ${response.status}.`,
+        );
+      }
+
+      if (!payload?.audit) {
+        throw new Error('The audit response was empty. Please try again in a moment.');
       }
 
       setAuditResult(payload);
@@ -200,4 +208,19 @@ export default function App() {
       <Footer />
     </div>
   );
+}
+
+function parseApiResponse(responseText) {
+  if (!responseText) return null;
+
+  try {
+    return JSON.parse(responseText);
+  } catch {
+    return {
+      error: {
+        message:
+          'The audit service returned an unexpected response. Please try again, or check the Vercel function logs.',
+      },
+    };
+  }
 }

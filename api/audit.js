@@ -9,6 +9,10 @@ const DEFAULT_LIMITATIONS = [
   'Mobile behavior could not be fully verified from static HTML alone.',
 ];
 
+export const config = {
+  maxDuration: 30,
+};
+
 const auditJsonSchema = {
   type: 'object',
   additionalProperties: false,
@@ -105,6 +109,8 @@ Limitations must be short human-readable sentences only. Never include XML tags,
 Return only valid JSON matching the required schema.`;
 
 export default async function handler(request, response) {
+  response.setHeader('Cache-Control', 'no-store');
+
   if (request.method !== 'POST') {
     return response.status(405).json({ error: { message: 'Method not allowed.' } });
   }
