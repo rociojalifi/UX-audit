@@ -9,7 +9,7 @@ export default function HeroSection() {
             UX/UI audit tool for sharper websites
           </p>
           <h1 className="max-w-4xl text-5xl font-black leading-[1.02] tracking-normal text-ink sm:text-6xl lg:text-7xl">
-            Find out why your website feels off — and how to fix it.
+            Find out why your website feels off — and how to fix it
           </h1>
           <p className="mt-6 max-w-2xl text-lg leading-8 text-ink/70">
             Paste your website link and get a UX/UI mini-audit with what’s working,
