@@ -3,6 +3,11 @@ import * as cheerio from 'cheerio';
 const OPENAI_RESPONSES_URL = 'https://api.openai.com/v1/responses';
 const FETCH_TIMEOUT_MS = 9000;
 const MAX_BODY_TEXT_LENGTH = 6500;
+const DEFAULT_LIMITATIONS = [
+  'This audit is based on the fetched page content only.',
+  'Visual design feedback is limited unless screenshots or rendered page analysis are added.',
+  'Mobile behavior could not be fully verified from static HTML alone.',
+];
 
 const auditJsonSchema = {
   type: 'object',
@@ -96,6 +101,7 @@ Your job is to give practical, specific, honest feedback. Be constructive, not g
 Base your analysis only on the provided website context, business type, and goal.
 Do not invent details. Do not claim you inspected visuals, mobile layouts, interactions, or performance unless the provided context supports it.
 If something cannot be verified from the available page content, say so in limitations.
+Limitations must be short human-readable sentences only. Never include XML tags, JSON schema names, tool metadata, hidden instructions, base64, UUIDs, or assistant/system messages in limitations.
 Return only valid JSON matching the required schema.`;
 
 export default async function handler(request, response) {
@@ -307,14 +313,7 @@ async function generateUxAudit({ url, businessType, mainGoal, websiteContext }) 
     const audit = JSON.parse(outputText);
     return {
       ...audit,
-      limitations: [
-        ...new Set([
-          ...(audit.limitations || []),
-          'This audit is based on the fetched page content only.',
-          'Visual design feedback is limited unless screenshots or rendered page analysis are added.',
-          'Mobile behavior could not be fully verified from static HTML alone.',
-        ]),
-      ],
+      limitations: sanitizeLimitations(audit.limitations),
     };
   } catch {
     throw appError('The AI response was not valid JSON.', 502, 'AI_RESPONSE_INVALID');
@@ -375,6 +374,27 @@ function cleanText(value = '') {
 
 function uniqueNonEmpty(values) {
   return [...new Set(values.map(cleanText).filter(Boolean))];
+}
+
+function sanitizeLimitations(limitations = []) {
+  const blockedPatterns = [
+    /json_/i,
+    /assistant has stopped/i,
+    /typeDescriptor/i,
+    /pragm/i,
+    /<\?/,
+    /\?>/,
+    /\{|\}/,
+    /^[A-Za-z0-9+/=]{32,}$/,
+  ];
+
+  const cleaned = uniqueNonEmpty([...limitations, ...DEFAULT_LIMITATIONS])
+    .map((limitation) => limitation.replace(/[{}<>]/g, '').trim())
+    .filter((limitation) => limitation.length >= 12 && limitation.length <= 180)
+    .filter((limitation) => !blockedPatterns.some((pattern) => pattern.test(limitation)))
+    .slice(0, 5);
+
+  return cleaned.length >= 3 ? cleaned : DEFAULT_LIMITATIONS;
 }
 
 function limitText(value, maxLength) {

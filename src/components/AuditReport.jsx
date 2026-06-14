@@ -68,9 +68,12 @@ export default function AuditReport({ audit, source }) {
           </ReportSection>
 
           <ReportSection title="Limitations" accent="sky">
-            <ul className="space-y-3">
-              {audit.limitations.map((limitation) => (
-                <li key={limitation} className="leading-7 text-ink/70">
+            <ul className="grid gap-3 sm:grid-cols-3">
+              {audit.limitations.map((limitation, index) => (
+                <li
+                  key={`${limitation}-${index}`}
+                  className="rounded-2xl bg-mist p-4 text-sm font-semibold leading-6 text-ink/70"
+                >
                   {limitation}
                 </li>
               ))}
