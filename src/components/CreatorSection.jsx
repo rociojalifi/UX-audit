@@ -8,7 +8,7 @@ const credibilityPoints = [
   'Helps small businesses improve trust, clarity, and conversion',
 ];
 
-const tags = ['UX/UI', 'Website audits', 'Redesigns', 'Clarity'];
+const tags = ['UX/UI', 'Frontend', 'Website audits', 'Redesigns'];
 
 export default function CreatorSection() {
   return (
@@ -33,6 +33,7 @@ export default function CreatorSection() {
               your audience, your offer, your goals, and how people actually experience
               your website.
             </p>
+            <p className="font-semibold text-text">That’s where I come in.</p>
             <p>
               I can help you turn the audit into practical improvements: clearer
               structure, stronger visual hierarchy, better calls-to-action, cleaner UI,

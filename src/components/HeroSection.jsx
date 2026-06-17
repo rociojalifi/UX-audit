@@ -38,6 +38,9 @@ export default function HeroSection() {
             <span className="rounded-full bg-surfaceSoft px-4 py-2">Grounded in page content</span>
             <span className="rounded-full bg-surfaceSoft px-4 py-2">Built for practical fixes</span>
           </div>
+          <p className="mt-5 text-sm font-semibold text-primary">
+            AI-assisted audit. Human UX/UI support available after.
+          </p>
         </div>
 
         <div className="relative">
