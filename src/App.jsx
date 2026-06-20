@@ -201,7 +201,13 @@ export default function App() {
 
         <div ref={reportRef}>
           {auditResult?.audit && (
-            <AuditReport audit={auditResult.audit} source={auditResult.source} />
+            <AuditReport
+              audit={auditResult.audit}
+              source={auditResult.source}
+              analysisStatus={auditResult.analysisStatus}
+              extractionMethod={auditResult.extractionMethod}
+              scoreAvailable={auditResult.scoreAvailable}
+            />
           )}
         </div>
       </main>
