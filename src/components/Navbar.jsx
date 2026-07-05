@@ -1,14 +1,22 @@
-import { ScanSearch } from 'lucide-react';
+import clerifyIcon from '../assets/clerify-icon-transparent.png';
+import clerifyLockup from '../assets/clerify-lockup-transparent.png';
 
 export default function Navbar() {
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-bg/88 backdrop-blur-xl">
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 sm:px-8">
-        <a href="#" className="flex items-center gap-2 font-heading text-lg font-bold text-text">
-          <span className="grid h-10 w-10 place-items-center rounded-2xl bg-primary text-white shadow-card ring-4 ring-accentLime/70">
-            <ScanSearch size={19} aria-hidden="true" />
-          </span>
-          Clerify
+        <a href="#" className="flex items-center gap-3" aria-label="Clerify home">
+          <img
+            src={clerifyIcon}
+            alt=""
+            className="h-10 w-10 rounded-2xl object-cover shadow-card ring-4 ring-accentLime/70 sm:hidden"
+            aria-hidden="true"
+          />
+          <img
+            src={clerifyLockup}
+            alt="Clerify"
+            className="hidden h-10 w-auto object-contain sm:block"
+          />
         </a>
         <div className="flex items-center gap-3">
           <a
