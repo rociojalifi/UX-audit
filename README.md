@@ -17,6 +17,20 @@ npm run dev
 
 Set `OPENAI_API_KEY` and `BROWSERLESS_TOKEN` in your local environment or Vercel project settings. `OPENAI_MODEL` is optional and defaults to `gpt-4.1-mini`. You may use `BROWSERLESS_WS_ENDPOINT` instead when you need a custom Browserless region or endpoint.
 
+## Contact form email delivery
+
+The paid-service request form posts to `/api/contact`.
+
+To send real emails, configure these environment variables:
+
+```bash
+RESEND_API_KEY=your_resend_api_key
+CONTACT_TO_EMAIL=clerifyinfo@gmail.com
+CONTACT_FROM_EMAIL="Clerify <hello@your-verified-domain.com>"
+```
+
+`CONTACT_TO_EMAIL` defaults to `clerifyinfo@gmail.com`. `CONTACT_FROM_EMAIL` should use a sender/domain verified in Resend for production. If `RESEND_API_KEY` is missing, the frontend opens a prefilled email to `clerifyinfo@gmail.com` as a fallback.
+
 ## Deployment note
 
 The app uses `playwright-core` to connect to Browserless over WebSocket, so Vercel does not need to package or launch Chromium. Static pages do not create a Browserless session; only pages that need rendered analysis do.

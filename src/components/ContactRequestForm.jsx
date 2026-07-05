@@ -34,7 +34,8 @@ function isValidOptionalUrl(value) {
 export default function ContactRequestForm({ selectedService }) {
   const [formData, setFormData] = useState(initialFormData);
   const [errors, setErrors] = useState({});
-  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [status, setStatus] = useState({ type: '', message: '' });
+  const [isSending, setIsSending] = useState(false);
 
   useEffect(() => {
     if (!selectedService) return;
@@ -45,16 +46,16 @@ export default function ContactRequestForm({ selectedService }) {
         ? selectedService
         : 'Not sure yet',
     }));
-    setIsSubmitted(false);
+    setStatus({ type: '', message: '' });
   }, [selectedService]);
 
   const updateField = (field, value) => {
     setFormData((current) => ({ ...current, [field]: value }));
     setErrors((current) => ({ ...current, [field]: '' }));
-    setIsSubmitted(false);
+    setStatus({ type: '', message: '' });
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
     const nextErrors = {};
@@ -81,8 +82,53 @@ export default function ContactRequestForm({ selectedService }) {
 
     if (Object.keys(nextErrors).length > 0) return;
 
-    // TODO: Connect this request form to email, CRM, or a backend endpoint.
-    setIsSubmitted(true);
+    setIsSending(true);
+    setStatus({ type: '', message: '' });
+
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...formData,
+          name: formData.name.trim(),
+          email: formData.email.trim(),
+          websiteUrl: formData.websiteUrl.trim(),
+          message: formData.message.trim(),
+        }),
+      });
+
+      const payload = await safeJson(response);
+
+      if (!response.ok) {
+        if (response.status === 501 || response.status === 404) {
+          window.location.href = buildMailtoUrl(formData);
+          setStatus({
+            type: 'success',
+            message:
+              'Your email app opened with the request details. Send that email to finish the request.',
+          });
+          return;
+        }
+
+        throw new Error(payload?.error?.message || 'The request could not be sent. Please try again.');
+      }
+
+      setStatus({
+        type: 'success',
+        message: 'Thanks — your request was sent to Clerify. I’ll get back to you soon.',
+      });
+      setFormData(initialFormData);
+    } catch (error) {
+      setStatus({
+        type: 'error',
+        message:
+          error.message ||
+          'The request could not be sent. Please email clerifyinfo@gmail.com directly.',
+      });
+    } finally {
+      setIsSending(false);
+    }
   };
 
   return (
@@ -97,8 +143,8 @@ export default function ContactRequestForm({ selectedService }) {
           </h2>
           <p className="mt-5 text-lg leading-8 text-muted">
             Share your website, goal, and the kind of help you are considering.
-            This frontend form is ready for the next step: connecting it to email
-            or a CRM when you choose the workflow.
+            Your request is sent to Clerify so Rocio can follow up with the right
+            next step.
           </p>
           <div className="mt-6 rounded-[1.5rem] border border-border bg-bg p-5">
             <p className="font-heading text-xl font-semibold text-text">
@@ -175,23 +221,53 @@ export default function ContactRequestForm({ selectedService }) {
             />
           </Field>
 
-          {isSubmitted && (
-            <div className="mt-5 rounded-2xl border border-success/25 bg-success/10 p-4 text-sm font-semibold leading-6 text-text">
-              Thanks — your request is captured in the UI. Email/CRM delivery still needs to be connected.
+          {status.message && (
+            <div
+              className={`mt-5 rounded-2xl border p-4 text-sm font-semibold leading-6 text-text ${
+                status.type === 'error'
+                  ? 'border-error/25 bg-error/10'
+                  : 'border-success/25 bg-success/10'
+              }`}
+            >
+              {status.message}
             </div>
           )}
 
           <button
             type="submit"
-            className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full bg-primary px-6 py-4 font-semibold text-white shadow-card transition hover:-translate-y-0.5 hover:bg-primaryDark sm:w-auto"
+            disabled={isSending}
+            className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full bg-primary px-6 py-4 font-semibold text-white shadow-card transition hover:-translate-y-0.5 hover:bg-primaryDark disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto"
           >
             <Send size={18} aria-hidden="true" />
-            Send request
+            {isSending ? 'Sending request...' : 'Send request'}
           </button>
         </form>
       </div>
     </section>
   );
+}
+
+async function safeJson(response) {
+  try {
+    return await response.json();
+  } catch {
+    return null;
+  }
+}
+
+function buildMailtoUrl(formData) {
+  const subject = `Clerify request: ${formData.serviceInterest}`;
+  const body = [
+    `Name: ${formData.name.trim()}`,
+    `Email: ${formData.email.trim()}`,
+    `Website: ${formData.websiteUrl.trim() || 'Not provided'}`,
+    `Service interest: ${formData.serviceInterest}`,
+    '',
+    'Message / goals:',
+    formData.message.trim(),
+  ].join('\n');
+
+  return `mailto:clerifyinfo@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
 
 function Field({ label, error, className = '', children }) {

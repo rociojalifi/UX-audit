@@ -64,7 +64,7 @@ export default function CreatorSection() {
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <a
-              href="mailto:hello@example.com?subject=Work%20with%20Rocio"
+              href="mailto:clerifyinfo@gmail.com?subject=Work%20with%20Rocio"
               aria-label="Work with Rocio"
               className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-6 py-3.5 font-semibold text-white shadow-card transition hover:-translate-y-0.5 hover:bg-primaryDark"
             >
@@ -72,7 +72,7 @@ export default function CreatorSection() {
               <ArrowRight size={18} aria-hidden="true" />
             </a>
             <a
-              href="mailto:hello@example.com?subject=Deeper%20UX/UI%20audit"
+              href="mailto:clerifyinfo@gmail.com?subject=Deeper%20UX/UI%20audit"
               aria-label="Request a deeper audit"
               className="inline-flex items-center justify-center rounded-full border border-border bg-surface px-6 py-3.5 font-semibold text-text transition hover:-translate-y-0.5 hover:border-primary/30 hover:bg-accentLime/35 hover:text-primary"
             >
