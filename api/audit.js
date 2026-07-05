@@ -89,6 +89,17 @@ function normalizeWebsiteUrl(value) {
 }
 
 async function extractWebsiteContext(url) {
+  let staticResult;
+  try {
+    staticResult = await extractStaticContext(url);
+    // Avoid paying for a remote browser when the server already supplied useful HTML.
+    if (hasMeaningfulContent(staticResult.context) && !staticResult.isLikelyJavaScriptRendered) {
+      return { analysisStatus: 'complete', extractionMethod: 'static-html', context: staticResult.context };
+    }
+  } catch {
+    // A blocked static request can still be successfully rendered by the remote browser.
+  }
+
   let renderedError;
   try {
     const context = await extractRenderedContext(url);
@@ -96,16 +107,11 @@ async function extractWebsiteContext(url) {
     renderedError = 'The rendered page did not contain enough readable content.';
   } catch (error) { renderedError = friendlyRenderError(error); }
 
-  let staticResult;
-  try { staticResult = await extractStaticContext(url); } catch (error) {
-    throw appError(`${renderedError} The website could not be retrieved as static HTML either.`, error.status || 502, 'EXTRACTION_FAILED');
-  }
-
-  if (staticResult.isLikelyJavaScriptRendered || !hasMeaningfulContent(staticResult.context)) {
+  if (!staticResult || staticResult.isLikelyJavaScriptRendered || !hasMeaningfulContent(staticResult.context)) {
     return {
       analysisStatus: 'limited', extractionMethod: 'failed',
       limitation: 'This website appears to rely on JavaScript rendering, and Clerify could not fully access the rendered page content. A full audit requires rendered page analysis.',
-      context: staticResult.context, renderError: renderedError,
+      context: staticResult?.context || emptyContext(url), renderError: renderedError,
     };
   }
   staticResult.context.limitations.push(`Rendered page analysis was unavailable: ${renderedError}`);
@@ -115,9 +121,12 @@ async function extractWebsiteContext(url) {
 async function extractRenderedContext(url) {
   let browser;
   try {
-    const { chromium } = await import('playwright');
-    browser = await chromium.launch({ headless: true });
-    const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, userAgent: 'ClerifyAuditBot/0.2' });
+    const endpoint = getBrowserlessEndpoint();
+    const { chromium } = await import('playwright-core');
+    browser = await chromium.connectOverCDP(endpoint, { timeout: RENDER_TIMEOUT_MS });
+    const context = browser.contexts()[0] || await browser.newContext({ viewport: { width: 1440, height: 900 }, userAgent: 'ClerifyAuditBot/0.2' });
+    const page = context.pages()[0] || await context.newPage();
+    await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto(url, { waitUntil: 'domcontentloaded', timeout: RENDER_TIMEOUT_MS });
     await page.waitForLoadState('networkidle', { timeout: 6000 }).catch(() => {});
     await page.waitForTimeout(500);
@@ -145,6 +154,12 @@ async function extractRenderedContext(url) {
     const screenshot = await page.screenshot({ type: 'png', fullPage: false }).catch(() => null);
     return finalizeContext({ ...data, fetchedUrl: page.url(), screenshotCaptured: Boolean(screenshot), extractionSource: 'rendered DOM', limitations: ['Content was extracted after JavaScript ran in a headless browser.'] });
   } finally { await browser?.close(); }
+}
+
+function getBrowserlessEndpoint() {
+  if (process.env.BROWSERLESS_WS_ENDPOINT) return process.env.BROWSERLESS_WS_ENDPOINT;
+  if (process.env.BROWSERLESS_TOKEN) return `wss://production-sfo.browserless.io?token=${encodeURIComponent(process.env.BROWSERLESS_TOKEN)}`;
+  throw appError('Rendered page analysis is not configured. Add BROWSERLESS_TOKEN in the server environment.', 503, 'RENDERER_UNAVAILABLE');
 }
 
 async function extractStaticContext(url) {
@@ -182,7 +197,8 @@ function isLikelyJavaScriptRendered($, html) {
     || (/<script[^>]+(?:src=|type=["']module)/i.test(html) && staticText.length < 80);
 }
 function hasMeaningfulContent(context) { return context.bodyText.length >= MIN_MEANINGFUL_TEXT_LENGTH || context.headings.h1.length + context.headings.h2.length >= 2 || context.mainLinks.length + context.buttonTexts.length >= 5; }
-function friendlyRenderError(error) { if (/Cannot find package 'playwright'|Executable doesn't exist/i.test(error?.message || '')) return 'Rendered page analysis is not installed on this server.'; if (/Timeout/i.test(error?.message || '')) return 'Rendered page analysis timed out.'; return 'Rendered page analysis could not access this website.'; }
+function friendlyRenderError(error) { if (/BROWSERLESS_TOKEN|BROWSERLESS_WS_ENDPOINT|RENDERER_UNAVAILABLE/i.test(error?.message || '')) return 'Rendered page analysis is not configured on this server.'; if (/Timeout/i.test(error?.message || '')) return 'Rendered page analysis timed out.'; return 'Rendered page analysis could not access this website.'; }
+function emptyContext(url) { return finalizeContext({ fetchedUrl: url, title: '', metaDescription: '', headings: { h1: [], h2: [], h3: [] }, bodyText: '', mainLinks: [], buttonTexts: [], navigationLinks: [], formFields: [], imageAltTexts: [], extractionSource: 'limited extraction', limitations: [] }); }
 
 async function generateUxAudit({ url, businessType, mainGoal, websiteContext }) {
   if (!process.env.OPENAI_API_KEY) throw appError('OPENAI_API_KEY is missing. Add it in Vercel Project Settings > Environment Variables.', 500, 'MISSING_API_KEY');
@@ -197,7 +213,12 @@ function buildUserPrompt({ url, businessType, mainGoal, websiteContext }) { retu
 
 function buildLimitedResponse({ url, businessType, mainGoal, extraction }) {
   const limitation = extraction.limitation;
-  return { source: 'limited', analysisStatus: 'limited', extractionMethod: 'failed', scoreAvailable: false, score: null, limitations: [limitation, 'No normal UX/UI score was generated from the static HTML shell.', 'Try again when rendered page analysis is available.'], websiteContextSummary: contextSummary(extraction.context), audit: { summary: { websiteUrl: url, businessType: businessType || 'Not provided', mainGoal: mainGoal || 'Not provided', firstImpression: limitation, overallScore: null }, positives: [], uxIssues: [], uiIssues: [], priorityFixes: [], finalRecommendation: 'Enable rendered page analysis and rerun this audit for evidence-based UX/UI feedback.', ctaSuggestion: { headline: 'Rendered analysis required', body: 'This website needs a browser-rendered audit before Clerify can make fair recommendations.', primaryButton: 'Try again later', secondaryButton: 'Request a human review' }, limitations: [limitation, 'No normal UX/UI score was generated from the static HTML shell.', 'Try again when rendered page analysis is available.'] } };
+  const limitations = [
+    limitation,
+    `Renderer status: ${extraction.renderError || 'Unavailable.'}`,
+    'No normal UX/UI score was generated from the static HTML shell.',
+  ];
+  return { source: 'limited', analysisStatus: 'limited', extractionMethod: 'failed', scoreAvailable: false, score: null, limitations, websiteContextSummary: contextSummary(extraction.context), audit: { summary: { websiteUrl: url, businessType: businessType || 'Not provided', mainGoal: mainGoal || 'Not provided', firstImpression: limitation, overallScore: null }, positives: [], uxIssues: [], uiIssues: [], priorityFixes: [], finalRecommendation: 'Enable rendered page analysis and rerun this audit for evidence-based UX/UI feedback.', ctaSuggestion: { headline: 'Rendered analysis required', body: 'This website needs a browser-rendered audit before Clerify can make fair recommendations.', primaryButton: 'Try again later', secondaryButton: 'Request a human review' }, limitations } };
 }
 function contextSummary(context) { return { fetchedUrl: context.fetchedUrl, title: context.title, h1: context.headings?.h1 || [], ctas: context.obviousCtas || [], screenshotCaptured: Boolean(context.screenshotCaptured) }; }
 function extractResponseText(responseJson) { if (typeof responseJson?.output_text === 'string') return responseJson.output_text; return (responseJson?.output || []).flatMap((output) => output.content || []).filter((content) => content.type === 'output_text').map((content) => content.text).join('\n').trim(); }

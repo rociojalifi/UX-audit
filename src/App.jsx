@@ -21,6 +21,11 @@ import ExampleInsightCard from './components/ExampleInsightCard';
 import TrustSection from './components/TrustSection';
 import CreatorSection from './components/CreatorSection';
 import LimitationsSection from './components/LimitationsSection';
+import PathwaySection from './components/PathwaySection';
+import ServiceLadderSection from './components/ServiceLadderSection';
+import OwnerUpdateSection from './components/OwnerUpdateSection';
+import ComparisonSection from './components/ComparisonSection';
+import ContactRequestForm from './components/ContactRequestForm';
 import Footer from './components/Footer';
 
 const checks = [
@@ -99,7 +104,16 @@ export default function App() {
   const [auditResult, setAuditResult] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [selectedService, setSelectedService] = useState('Human homepage review');
   const reportRef = useRef(null);
+  const contactRef = useRef(null);
+
+  const handleRequestService = (serviceInterest = 'Human homepage review') => {
+    setSelectedService(serviceInterest);
+    window.setTimeout(() => {
+      contactRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 80);
+  };
 
   const handleAuditSubmit = async (formData) => {
     setIsLoading(true);
@@ -153,7 +167,7 @@ export default function App() {
               <p className="text-sm font-bold uppercase tracking-[0.18em] text-accent">
                 What Clerify checks
               </p>
-              <h2 className="mt-3 font-heading text-3xl font-extrabold text-text sm:text-5xl">
+              <h2 className="mt-3 font-heading text-3xl font-bold text-text sm:text-5xl">
                 A practical audit of the moments that make websites feel clear or confusing
               </h2>
               <p className="mt-5 text-lg leading-8 text-muted">
@@ -169,27 +183,59 @@ export default function App() {
           </div>
         </section>
 
+        <PathwaySection />
         <TrustSection />
         <CreatorSection />
+        <ServiceLadderSection onRequestService={handleRequestService} />
+        <OwnerUpdateSection />
+        <ComparisonSection />
         <ExampleInsightCard />
 
         <section className="bg-surface py-20">
-          <div className="mx-auto grid max-w-7xl gap-12 px-5 sm:px-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-start">
-            <div>
+          <div className="mx-auto grid max-w-7xl gap-10 px-5 sm:px-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
+            <div className="max-w-2xl">
               <p className="text-sm font-bold uppercase tracking-[0.18em] text-accent">
                 Who it is for
               </p>
-              <h2 className="mt-3 font-heading text-3xl font-extrabold text-text sm:text-5xl">
+              <h2 className="mt-3 font-heading text-3xl font-bold leading-tight text-text sm:text-4xl">
                 For websites that are almost there, but not quite converting
               </h2>
               <p className="mt-5 text-lg leading-8 text-muted">
                 Clerify helps small business owners, founders, and service providers
                 understand what to improve before investing in a redesign or deeper audit.
               </p>
+              <div className="mt-6 rounded-3xl border border-primary/10 bg-primarySoft/50 p-5">
+                <p className="font-semibold leading-7 text-primaryDark">
+                  Best when you already have a website live, but something about the
+                  message, flow, or visual polish does not feel clear enough yet.
+                </p>
+              </div>
             </div>
-            <div className="grid gap-5 md:grid-cols-3 lg:grid-cols-1">
-              {audiences.map((feature) => (
-                <FeatureCard key={feature.title} {...feature} />
+
+            <div className="grid gap-4">
+              {audiences.map(({ icon: Icon, title, description }, index) => (
+                <article
+                  key={title}
+                  className="group grid gap-4 rounded-[1.75rem] border border-border bg-bg p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-primary/20 hover:bg-surface hover:shadow-card sm:grid-cols-[auto_1fr]"
+                >
+                  <div
+                    className={`grid h-12 w-12 place-items-center rounded-2xl text-primary ring-4 ${
+                      index === 1
+                        ? 'bg-accentLime ring-accentLime/45'
+                        : index === 2
+                          ? 'bg-accentBlueSoft ring-accentBlueSoft/45'
+                          : 'bg-primarySoft ring-primarySoft/60'
+                    }`}
+                  >
+                    <Icon size={22} aria-hidden="true" />
+                  </div>
+                  <div>
+                    <h3 className="font-heading text-lg font-semibold text-text">
+                      {title}
+                    </h3>
+                    <p className="mt-2 leading-7 text-muted">{description}</p>
+                  </div>
+                </article>
               ))}
             </div>
           </div>
@@ -207,8 +253,13 @@ export default function App() {
               analysisStatus={auditResult.analysisStatus}
               extractionMethod={auditResult.extractionMethod}
               scoreAvailable={auditResult.scoreAvailable}
+              onRequestService={handleRequestService}
             />
           )}
+        </div>
+
+        <div ref={contactRef}>
+          <ContactRequestForm selectedService={selectedService} />
         </div>
       </main>
       <Footer />

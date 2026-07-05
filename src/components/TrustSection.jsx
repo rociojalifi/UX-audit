@@ -9,7 +9,7 @@ export default function TrustSection() {
             <p className="text-sm font-bold uppercase tracking-[0.18em] text-accent">
               AI-assisted, designer-informed
             </p>
-            <h2 className="mt-3 font-heading text-3xl font-extrabold text-text sm:text-5xl">
+            <h2 className="mt-3 font-heading text-3xl font-bold text-text sm:text-5xl">
               AI gives the first structure. UX/UI principles keep it useful
             </h2>
             <p className="mt-5 text-lg leading-8 text-muted">
@@ -43,9 +43,9 @@ export default function TrustSection() {
           </div>
         </div>
 
-        <div className="mt-10 rounded-[2rem] border border-border bg-primaryDark p-6 text-white shadow-card sm:p-8">
+        <div className="mt-10 rounded-[2.25rem] border border-primaryDark/10 bg-primaryDark p-6 text-white shadow-card sm:p-8">
           <div className="grid gap-5 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
-            <h3 className="font-heading text-2xl font-bold">
+            <h3 className="font-heading text-2xl font-semibold">
               Built by a UX/UI designer + software developer
             </h3>
             <p className="leading-8 text-white/74">
@@ -63,10 +63,10 @@ export default function TrustSection() {
 function TrustPoint({ icon: Icon, title, description }) {
   return (
     <article className="rounded-3xl border border-border bg-bg p-5">
-      <div className="mb-4 grid h-11 w-11 place-items-center rounded-2xl bg-accentSoft text-primaryDark">
+      <div className="mb-4 grid h-11 w-11 place-items-center rounded-2xl bg-accentLime text-primaryDark">
         <Icon size={22} aria-hidden="true" />
       </div>
-      <h3 className="font-heading text-lg font-bold text-text">{title}</h3>
+      <h3 className="font-heading text-lg font-semibold text-text">{title}</h3>
       <p className="mt-2 leading-7 text-muted">{description}</p>
     </article>
   );

@@ -3,20 +3,23 @@
 @tailwind utilities;
 
 :root {
-  --color-bg: #f7f8fb;
+  --color-bg: #f7f7f4;
   --color-surface: #ffffff;
-  --color-surface-soft: #eef3f8;
-  --color-text: #111827;
-  --color-text-muted: #5b6472;
-  --color-primary: #1e40af;
-  --color-primary-dark: #172554;
-  --color-primary-soft: #dbeafe;
-  --color-accent: #14b8a6;
-  --color-accent-soft: #ccfbf1;
-  --color-border: #d9e1ec;
-  --color-warning: #f59e0b;
+  --color-surface-soft: #f1f2f8;
+  --color-text: #151714;
+  --color-text-muted: #5f6673;
+  --color-primary: #5a4eff;
+  --color-primary-dark: #253a82;
+  --color-primary-soft: #e8e7ff;
+  --color-accent: #5a4eff;
+  --color-accent-soft: #e2f4a6;
+  --color-accent-lime: #e2f4a6;
+  --color-accent-pink: #eea0ff;
+  --color-accent-blue-soft: #c6e6ff;
+  --color-border: #dde2ea;
+  --color-warning: #d97706;
   --color-error: #dc2626;
-  --color-success: #059669;
+  --color-success: #147d64;
   color: var(--color-text);
   background: var(--color-bg);
   font-synthesis: none;
@@ -35,14 +38,14 @@ body {
   min-height: 100vh;
   background: var(--color-bg);
   color: var(--color-text);
-  font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  font-family: 'Rubik', ui-sans-serif, system-ui, sans-serif;
 }
 
 h1,
 h2,
 h3 {
-  font-family: 'Sora', 'Inter', ui-sans-serif, system-ui, sans-serif;
-  letter-spacing: -0.04em;
+  font-family: 'Rubik', ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: -0.035em;
 }
 
 button,
@@ -57,6 +60,6 @@ select {
 }
 
 :focus-visible {
-  outline: 3px solid rgba(20, 184, 166, 0.55);
+  outline: 3px solid rgba(90, 78, 255, 0.36);
   outline-offset: 3px;
 }

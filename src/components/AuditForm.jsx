@@ -58,7 +58,7 @@ export default function AuditForm({ onSubmit, isLoading, apiError }) {
           <p className="text-sm font-bold uppercase tracking-[0.18em] text-accent">
             Generate your report
           </p>
-          <h2 className="mt-3 font-heading text-3xl font-extrabold text-text sm:text-4xl">
+          <h2 className="mt-3 font-heading text-3xl font-bold text-text sm:text-4xl">
             Paste your website and get focused UX/UI feedback
           </h2>
           <p className="mx-auto mt-4 max-w-2xl leading-7 text-muted">
@@ -70,7 +70,7 @@ export default function AuditForm({ onSubmit, isLoading, apiError }) {
         <form
           noValidate
           onSubmit={handleSubmit}
-          className="rounded-[2rem] border border-border bg-bg p-5 shadow-card sm:p-8"
+          className="rounded-[2.25rem] border border-border bg-bg p-5 shadow-card sm:p-8"
         >
           <div className="grid gap-5">
             <label className="grid gap-2">
@@ -124,7 +124,7 @@ export default function AuditForm({ onSubmit, isLoading, apiError }) {
           <button
             type="submit"
             disabled={isLoading}
-            className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full bg-primary px-6 py-4 font-bold text-white shadow-card transition hover:-translate-y-0.5 hover:bg-primaryDark disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto"
+            className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full bg-primary px-6 py-4 font-semibold text-white shadow-card transition hover:-translate-y-0.5 hover:bg-primaryDark disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto"
           >
             <Search size={18} aria-hidden="true" />
             {isLoading ? 'Fetching context and auditing...' : 'Generate AI mini-audit'}

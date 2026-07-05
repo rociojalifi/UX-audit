@@ -1,4 +1,13 @@
-import { ArrowRight, BadgeCheck, Code2, Eye, Palette, Sparkles } from 'lucide-react';
+import {
+  ArrowRight,
+  BadgeCheck,
+  Code2,
+  Eye,
+  ExternalLink,
+  Linkedin,
+  Palette,
+  Sparkles,
+} from 'lucide-react';
 import rocioPhoto from '../assets/rocio-jalifi.jpeg';
 
 const credibilityPoints = [
@@ -18,7 +27,7 @@ export default function CreatorSection() {
           <p className="text-sm font-bold uppercase tracking-[0.18em] text-accent">
             Who’s behind Clerify?
           </p>
-          <h2 className="mt-3 font-heading text-3xl font-extrabold text-text sm:text-5xl">
+          <h2 className="mt-3 font-heading text-3xl font-bold text-text sm:text-5xl">
             A first AI direction, backed by human UX/UI judgment
           </h2>
 
@@ -45,7 +54,7 @@ export default function CreatorSection() {
             {credibilityPoints.map((point) => (
               <li
                 key={point}
-                className="flex gap-3 rounded-2xl border border-border bg-surface p-4 text-sm font-semibold leading-6 text-text"
+                className="flex gap-3 rounded-2xl border border-border bg-surface p-4 text-sm font-semibold leading-6 text-text shadow-sm"
               >
                 <BadgeCheck className="mt-0.5 shrink-0 text-success" size={19} aria-hidden="true" />
                 <span>{point}</span>
@@ -57,7 +66,7 @@ export default function CreatorSection() {
             <a
               href="mailto:hello@example.com?subject=Work%20with%20Rocio"
               aria-label="Work with Rocio"
-              className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-6 py-3.5 font-bold text-white shadow-card transition hover:-translate-y-0.5 hover:bg-primaryDark"
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-6 py-3.5 font-semibold text-white shadow-card transition hover:-translate-y-0.5 hover:bg-primaryDark"
             >
               Work with Rocio
               <ArrowRight size={18} aria-hidden="true" />
@@ -65,15 +74,16 @@ export default function CreatorSection() {
             <a
               href="mailto:hello@example.com?subject=Deeper%20UX/UI%20audit"
               aria-label="Request a deeper audit"
-              className="inline-flex items-center justify-center rounded-full border border-border bg-surface px-6 py-3.5 font-bold text-text transition hover:-translate-y-0.5 hover:border-primary/30 hover:text-primary"
+              className="inline-flex items-center justify-center rounded-full border border-border bg-surface px-6 py-3.5 font-semibold text-text transition hover:-translate-y-0.5 hover:border-primary/30 hover:bg-accentLime/35 hover:text-primary"
             >
               Request a deeper audit
             </a>
           </div>
         </div>
 
-        <aside className="rounded-[2rem] border border-border bg-surface p-6 shadow-card sm:p-8">
-          <div className="rounded-[1.5rem] bg-primaryDark p-6 text-white">
+        <aside className="rounded-[2.25rem] border border-border bg-surface p-6 shadow-card sm:p-8">
+          <div className="relative overflow-hidden rounded-[1.75rem] bg-primaryDark p-6 text-white">
+            <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-accentPink/20 blur-2xl" aria-hidden="true" />
             <div className="flex items-center gap-4">
               <div className="h-24 w-24 shrink-0 overflow-hidden rounded-3xl border-4 border-white bg-white shadow-card">
                 <img
@@ -90,9 +100,30 @@ export default function CreatorSection() {
               </div>
             </div>
 
-            <p className="mt-6 text-lg leading-8 text-white/78">
-              I help websites feel clearer, more polished, and easier to use.
+            <p className="relative mt-6 text-lg leading-8 text-white/78">
+              I’m here to help you see what’s not working on your website — and make it feel clearer, calmer, and easier to use.
             </p>
+
+            <div className="relative mt-5 flex flex-wrap gap-3">
+              <a
+                href="https://rociojalifi.com/"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-white hover:text-primaryDark"
+              >
+                Portfolio
+                <ExternalLink size={15} aria-hidden="true" />
+              </a>
+              <a
+                href="https://www.linkedin.com/in/jalifirocio/"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-white hover:text-primaryDark"
+              >
+                LinkedIn
+                <Linkedin size={15} aria-hidden="true" />
+              </a>
+            </div>
           </div>
 
           <div className="mt-5 grid gap-4 sm:grid-cols-3">
@@ -105,14 +136,14 @@ export default function CreatorSection() {
             {tags.map((tag) => (
               <span
                 key={tag}
-                className="rounded-full bg-accentSoft px-3 py-1.5 text-sm font-bold text-primaryDark"
+                className="rounded-full bg-accentLime px-3 py-1.5 text-sm font-semibold text-primaryDark"
               >
                 {tag}
               </span>
             ))}
           </div>
 
-          <div className="mt-6 rounded-3xl border border-border bg-surfaceSoft p-5">
+          <div className="mt-6 rounded-3xl border border-primary/10 bg-primarySoft/55 p-5">
             <div className="mb-3 flex items-center gap-2 text-sm font-bold uppercase tracking-[0.16em] text-primary">
               <Sparkles size={16} aria-hidden="true" />
               Human review adds context
@@ -133,7 +164,7 @@ function MiniMetric({ icon: Icon, label, value }) {
     <div className="rounded-2xl border border-border bg-bg p-4">
       <Icon className="mb-3 text-primary" size={20} aria-hidden="true" />
       <p className="text-xs font-bold uppercase tracking-[0.14em] text-muted">{label}</p>
-      <p className="mt-1 font-heading text-sm font-bold text-text">{value}</p>
+      <p className="mt-1 font-heading text-sm font-semibold text-text">{value}</p>
     </div>
   );
 }

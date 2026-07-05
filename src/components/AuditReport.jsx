@@ -1,5 +1,5 @@
-import { CalendarCheck, LayoutTemplate } from 'lucide-react';
 import ReportSection from './ReportSection';
+import PostAuditCTA from './PostAuditCTA';
 
 const impactClasses = {
   high: 'bg-error/10 text-error border-error/20',
@@ -7,7 +7,14 @@ const impactClasses = {
   low: 'bg-success/10 text-success border-success/20',
 };
 
-export default function AuditReport({ audit, source, analysisStatus, extractionMethod, scoreAvailable }) {
+export default function AuditReport({
+  audit,
+  source,
+  analysisStatus,
+  extractionMethod,
+  scoreAvailable,
+  onRequestService = () => {},
+}) {
   const { summary } = audit;
   const isLimited = analysisStatus === 'limited';
 
@@ -23,7 +30,7 @@ export default function AuditReport({ audit, source, analysisStatus, extractionM
               {source === 'ai' ? 'AI generated' : source === 'limited' ? 'Limited extraction' : 'Development fallback'}
             </span>
           </div>
-          <h2 className="mt-3 font-heading text-3xl font-extrabold text-text sm:text-4xl">
+          <h2 className="mt-3 font-heading text-3xl font-bold text-text sm:text-4xl">
             UX/UI mini-audit for: <span className="break-all">{summary.websiteUrl}</span>
           </h2>
           <div className="mt-4 flex flex-wrap gap-3 text-sm font-semibold text-muted">
@@ -44,7 +51,7 @@ export default function AuditReport({ audit, source, analysisStatus, extractionM
 
         <div className="grid gap-5">
           {isLimited && (
-            <div className="rounded-[2rem] border border-warning/30 bg-warning/10 p-6 text-primaryDark shadow-sm">
+            <div className="rounded-[2.25rem] border border-warning/30 bg-warning/10 p-6 text-primaryDark shadow-sm">
               <p className="text-sm font-black uppercase tracking-[0.14em]">Limited audit</p>
               <p className="mt-2 max-w-3xl leading-7">
                 This website appears to rely on JavaScript rendering, and Clerify could not fully access the rendered page content. The results below may be incomplete.
@@ -66,11 +73,11 @@ export default function AuditReport({ audit, source, analysisStatus, extractionM
             <ReportSection title="Priority fixes" accent="coral">
             <div className="grid gap-4 md:grid-cols-3">
               {audit.priorityFixes.map((fix) => (
-                <article key={`${fix.priority}-${fix.title}`} className="rounded-2xl border border-border bg-bg p-5">
+                  <article key={`${fix.priority}-${fix.title}`} className="rounded-3xl border border-border bg-bg p-5">
                   <p className="text-sm font-black uppercase tracking-[0.14em] text-primary">
                     {fix.priority} priority
                   </p>
-                  <h4 className="mt-3 font-heading text-lg font-bold text-text">{formatTitle(fix.title)}</h4>
+                  <h4 className="mt-3 font-heading text-lg font-semibold text-text">{formatTitle(fix.title)}</h4>
                   <p className="mt-2 leading-7 text-muted">{fix.description}</p>
                 </article>
               ))}
@@ -95,39 +102,7 @@ export default function AuditReport({ audit, source, analysisStatus, extractionM
             </ul>
           </ReportSection>
 
-          <div className="rounded-[2rem] bg-primaryDark p-6 text-white shadow-card sm:p-8">
-            <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-center">
-              <div>
-                <p className="text-sm font-bold uppercase tracking-[0.18em] text-accent">
-                  Human UX/UI review
-                </p>
-                <h3 className="mt-3 font-heading text-3xl font-extrabold">
-                  Want to turn these insights into a better website
-                </h3>
-                <p className="mt-3 max-w-2xl leading-8 text-white/70">
-                  Clerify gives you the first direction. Rocio can help you go deeper
-                  with a human UX/UI review, clearer structure, stronger visuals, and
-                  practical redesign recommendations.
-                </p>
-              </div>
-              <div className="flex flex-col gap-3 sm:flex-row lg:flex-col">
-                <a
-                  href="mailto:hello@example.com?subject=Work%20with%20Rocio"
-                  className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-6 py-3.5 font-bold text-primaryDark transition hover:-translate-y-0.5 hover:bg-accentSoft"
-                >
-                  <CalendarCheck size={18} aria-hidden="true" />
-                  Work with Rocio
-                </a>
-                <a
-                  href="mailto:hello@example.com?subject=Full%20UX/UI%20audit"
-                  className="inline-flex items-center justify-center gap-2 rounded-full border border-white/25 px-6 py-3.5 font-bold text-white transition hover:-translate-y-0.5 hover:bg-white hover:text-primaryDark"
-                >
-                  <LayoutTemplate size={18} aria-hidden="true" />
-                  Request a full UX/UI audit
-                </a>
-              </div>
-            </div>
-          </div>
+          <PostAuditCTA onRequestService={onRequestService} />
         </div>
       </div>
     </section>
