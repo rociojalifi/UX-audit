@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search } from 'lucide-react';
+import { CheckCircle2, LoaderCircle, Search } from 'lucide-react';
 
 const goals = [
   'Get more bookings',
@@ -7,6 +7,12 @@ const goals = [
   'Look more professional',
   'Improve clarity',
   'Improve conversion',
+];
+
+const auditSteps = [
+  'Opening the website',
+  'Reading the page content',
+  'Writing practical UX/UI priorities',
 ];
 
 function isValidUrl(value) {
@@ -18,7 +24,7 @@ function isValidUrl(value) {
   }
 }
 
-export default function AuditForm({ onSubmit, isLoading, apiError }) {
+export default function AuditForm({ onSubmit, isLoading, apiError, variant = 'section' }) {
   const [formData, setFormData] = useState({
     websiteUrl: '',
     businessType: '',
@@ -51,6 +57,90 @@ export default function AuditForm({ onSubmit, isLoading, apiError }) {
     });
   };
 
+  const form = (
+    <form
+      id={variant === 'hero' ? 'audit' : undefined}
+      noValidate
+      onSubmit={handleSubmit}
+      className={
+        variant === 'hero'
+          ? 'mt-8 rounded-[2rem] border border-border bg-surface/95 p-4 shadow-card backdrop-blur sm:p-5'
+          : 'rounded-[2.25rem] border border-border bg-bg p-5 shadow-card sm:p-8'
+      }
+    >
+      <div className="grid gap-4">
+        <label className="grid gap-2">
+          <span className="text-sm font-bold text-text">Website URL</span>
+          <input
+            type="text"
+            value={formData.websiteUrl}
+            disabled={isLoading}
+            onChange={(event) => updateField('websiteUrl', event.target.value)}
+            placeholder="https://example.com"
+            className="rounded-2xl border border-border bg-surface px-4 py-3.5 text-text outline-none transition placeholder:text-muted/70 focus:border-primary focus:ring-4 focus:ring-primary/10 disabled:cursor-not-allowed disabled:bg-surfaceSoft disabled:text-muted"
+          />
+        </label>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <label className="grid gap-2">
+            <span className="text-sm font-bold text-text">Business type</span>
+            <input
+              type="text"
+              value={formData.businessType}
+              disabled={isLoading}
+              onChange={(event) =>
+                updateField('businessType', event.target.value)
+              }
+              placeholder="Studio, coach, SaaS, shop..."
+              className="rounded-2xl border border-border bg-surface px-4 py-3.5 text-text outline-none transition placeholder:text-muted/70 focus:border-primary focus:ring-4 focus:ring-primary/10 disabled:cursor-not-allowed disabled:bg-surfaceSoft disabled:text-muted"
+            />
+          </label>
+
+          <label className="grid gap-2">
+            <span className="text-sm font-bold text-text">Main goal</span>
+            <select
+              value={formData.mainGoal}
+              disabled={isLoading}
+              onChange={(event) => updateField('mainGoal', event.target.value)}
+              className="rounded-2xl border border-border bg-surface px-4 py-3.5 text-text outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/10 disabled:cursor-not-allowed disabled:bg-surfaceSoft disabled:text-muted"
+            >
+              {goals.map((goal) => (
+                <option key={goal} value={goal}>
+                  {goal}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+      </div>
+
+      {(error || apiError) && (
+        <div className="mt-5 rounded-2xl border border-error/25 bg-error/10 p-4 text-sm font-semibold leading-6 text-text">
+          {error || apiError}
+        </div>
+      )}
+
+      <button
+        type="submit"
+        disabled={isLoading}
+        className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-full bg-primary px-6 py-4 font-semibold text-white shadow-card transition hover:-translate-y-0.5 hover:bg-primaryDark disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto"
+      >
+        {isLoading ? (
+          <LoaderCircle className="animate-spin" size={18} aria-hidden="true" />
+        ) : (
+          <Search size={18} aria-hidden="true" />
+        )}
+        {isLoading ? 'Auditing your website...' : 'Start free audit'}
+      </button>
+
+      {isLoading && <AuditProgress />}
+    </form>
+  );
+
+  if (variant === 'hero') {
+    return form;
+  }
+
   return (
     <section id="audit" className="bg-surface py-20">
       <div className="mx-auto max-w-4xl px-5 sm:px-8">
@@ -67,70 +157,46 @@ export default function AuditForm({ onSubmit, isLoading, apiError }) {
           </p>
         </div>
 
-        <form
-          noValidate
-          onSubmit={handleSubmit}
-          className="rounded-[2.25rem] border border-border bg-bg p-5 shadow-card sm:p-8"
-        >
-          <div className="grid gap-5">
-            <label className="grid gap-2">
-              <span className="text-sm font-bold text-text">Website URL</span>
-              <input
-                type="text"
-                value={formData.websiteUrl}
-                onChange={(event) => updateField('websiteUrl', event.target.value)}
-                placeholder="https://example.com"
-                className="rounded-2xl border border-border bg-surface px-4 py-3.5 text-text outline-none transition placeholder:text-muted/70 focus:border-primary focus:ring-4 focus:ring-primary/10"
-              />
-            </label>
-
-            <div className="grid gap-5 sm:grid-cols-2">
-              <label className="grid gap-2">
-                <span className="text-sm font-bold text-text">Business type</span>
-                <input
-                  type="text"
-                  value={formData.businessType}
-                  onChange={(event) =>
-                    updateField('businessType', event.target.value)
-                  }
-                  placeholder="Studio, coach, SaaS, shop..."
-                  className="rounded-2xl border border-border bg-surface px-4 py-3.5 text-text outline-none transition placeholder:text-muted/70 focus:border-primary focus:ring-4 focus:ring-primary/10"
-                />
-              </label>
-
-              <label className="grid gap-2">
-                <span className="text-sm font-bold text-text">Main goal</span>
-                <select
-                  value={formData.mainGoal}
-                  onChange={(event) => updateField('mainGoal', event.target.value)}
-                  className="rounded-2xl border border-border bg-surface px-4 py-3.5 text-text outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/10"
-                >
-                  {goals.map((goal) => (
-                    <option key={goal} value={goal}>
-                      {goal}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            </div>
-          </div>
-
-          {(error || apiError) && (
-            <div className="mt-5 rounded-2xl border border-error/25 bg-error/10 p-4 text-sm font-semibold leading-6 text-text">
-              {error || apiError}
-            </div>
-          )}
-
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full bg-primary px-6 py-4 font-semibold text-white shadow-card transition hover:-translate-y-0.5 hover:bg-primaryDark disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto"
-          >
-            <Search size={18} aria-hidden="true" />
-            {isLoading ? 'Fetching context and auditing...' : 'Generate AI mini-audit'}
-          </button>
-        </form>
+        {form}
       </div>
     </section>
+  );
+}
+
+function AuditProgress() {
+  return (
+    <div
+      className="mt-5 rounded-3xl border border-primary/10 bg-primarySoft/50 p-4"
+      role="status"
+      aria-live="polite"
+    >
+      <div className="flex items-start gap-3">
+        <div className="mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-surface text-primary shadow-sm">
+          <LoaderCircle className="animate-spin" size={20} aria-hidden="true" />
+        </div>
+        <div>
+          <p className="font-semibold text-text">Clerify is working on your audit</p>
+          <p className="mt-1 text-sm leading-6 text-muted">
+            Rendered pages can take a little longer while the browser loads the site.
+          </p>
+        </div>
+      </div>
+
+      <ol className="mt-4 grid gap-2 sm:grid-cols-3">
+        {auditSteps.map((step, index) => (
+          <li
+            key={step}
+            className="flex items-center gap-2 rounded-2xl bg-surface px-3 py-2 text-sm font-semibold text-muted"
+          >
+            {index === auditSteps.length - 1 ? (
+              <LoaderCircle className="shrink-0 animate-spin text-primary" size={16} aria-hidden="true" />
+            ) : (
+              <CheckCircle2 className="shrink-0 text-primary" size={16} aria-hidden="true" />
+            )}
+            {step}
+          </li>
+        ))}
+      </ol>
+    </div>
   );
 }

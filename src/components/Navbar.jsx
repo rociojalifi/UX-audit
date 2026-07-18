@@ -26,6 +26,12 @@ export default function Navbar() {
             What it checks
           </a>
           <a
+            href="#example-report"
+            className="hidden rounded-full px-4 py-2 text-sm font-semibold text-muted transition hover:bg-surfaceSoft hover:text-text lg:inline-flex"
+          >
+            Sample report
+          </a>
+          <a
             href="#services"
             className="hidden rounded-full px-4 py-2 text-sm font-semibold text-muted transition hover:bg-surfaceSoft hover:text-text md:inline-flex"
           >
@@ -33,7 +39,7 @@ export default function Navbar() {
           </a>
           <a
             href="#contact"
-            className="hidden rounded-full px-4 py-2 text-sm font-semibold text-muted transition hover:bg-surfaceSoft hover:text-text lg:inline-flex"
+            className="hidden rounded-full px-4 py-2 text-sm font-semibold text-muted transition hover:bg-surfaceSoft hover:text-text xl:inline-flex"
           >
             Human review
           </a>

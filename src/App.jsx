@@ -3,28 +3,20 @@ import {
   Accessibility,
   BadgeCheck,
   Eye,
-  ClipboardCheck,
   MousePointerClick,
   Navigation,
   PanelsTopLeft,
   Rocket,
   Sparkles,
-  UsersRound,
 } from 'lucide-react';
 import Navbar from './components/Navbar';
 import HeroSection from './components/HeroSection';
 import FeatureCard from './components/FeatureCard';
-import AuditForm from './components/AuditForm';
 import AuditReport from './components/AuditReport';
 import CTASection from './components/CTASection';
 import ExampleInsightCard from './components/ExampleInsightCard';
-import TrustSection from './components/TrustSection';
 import CreatorSection from './components/CreatorSection';
-import LimitationsSection from './components/LimitationsSection';
-import PathwaySection from './components/PathwaySection';
 import ServiceLadderSection from './components/ServiceLadderSection';
-import OwnerUpdateSection from './components/OwnerUpdateSection';
-import ComparisonSection from './components/ComparisonSection';
 import ContactRequestForm from './components/ContactRequestForm';
 import Footer from './components/Footer';
 
@@ -76,27 +68,6 @@ const checks = [
     title: 'Mobile experience',
     description:
       'Notes mobile and responsive concerns when they can be inferred from the available page structure.',
-  },
-];
-
-const audiences = [
-  {
-    icon: UsersRound,
-    title: 'Founders and service providers',
-    description:
-      'For people who know their website could work harder but need a clear place to start.',
-  },
-  {
-    icon: ClipboardCheck,
-    title: 'Small teams before a redesign',
-    description:
-      'Useful before investing in a full redesign, landing page refresh, or conversion sprint.',
-  },
-  {
-    icon: Rocket,
-    title: 'Creators launching offers',
-    description:
-      'A quick way to spot confusing moments before sending more traffic to the page.',
   },
 ];
 
@@ -159,7 +130,24 @@ export default function App() {
     <div className="min-h-screen bg-bg font-sans text-text">
       <Navbar />
       <main>
-        <HeroSection />
+        <HeroSection
+          onSubmit={handleAuditSubmit}
+          isLoading={isLoading}
+          apiError={error}
+        />
+
+        <div ref={reportRef}>
+          {auditResult?.audit && (
+            <AuditReport
+              audit={auditResult.audit}
+              source={auditResult.source}
+              analysisStatus={auditResult.analysisStatus}
+              extractionMethod={auditResult.extractionMethod}
+              scoreAvailable={auditResult.scoreAvailable}
+              onRequestService={handleRequestService}
+            />
+          )}
+        </div>
 
         <section id="checks" className="bg-surface py-20">
           <div className="mx-auto max-w-7xl px-5 sm:px-8">
@@ -183,80 +171,10 @@ export default function App() {
           </div>
         </section>
 
-        <PathwaySection />
-        <TrustSection />
+        <ExampleInsightCard />
         <CreatorSection />
         <ServiceLadderSection onRequestService={handleRequestService} />
-        <OwnerUpdateSection />
-        <ComparisonSection />
-        <ExampleInsightCard />
-
-        <section className="bg-surface py-20">
-          <div className="mx-auto grid max-w-7xl gap-10 px-5 sm:px-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
-            <div className="max-w-2xl">
-              <p className="text-sm font-bold uppercase tracking-[0.18em] text-accent">
-                Who it is for
-              </p>
-              <h2 className="mt-3 font-heading text-3xl font-bold leading-tight text-text sm:text-4xl">
-                For websites that are almost there, but not quite converting
-              </h2>
-              <p className="mt-5 text-lg leading-8 text-muted">
-                Clerify helps small business owners, founders, and service providers
-                understand what to improve before investing in a redesign or deeper audit.
-              </p>
-              <div className="mt-6 rounded-3xl border border-primary/10 bg-primarySoft/50 p-5">
-                <p className="font-semibold leading-7 text-primaryDark">
-                  Best when you already have a website live, but something about the
-                  message, flow, or visual polish does not feel clear enough yet.
-                </p>
-              </div>
-            </div>
-
-            <div className="grid gap-4">
-              {audiences.map(({ icon: Icon, title, description }, index) => (
-                <article
-                  key={title}
-                  className="group grid gap-4 rounded-[1.75rem] border border-border bg-bg p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-primary/20 hover:bg-surface hover:shadow-card sm:grid-cols-[auto_1fr]"
-                >
-                  <div
-                    className={`grid h-12 w-12 place-items-center rounded-2xl text-primary ring-4 ${
-                      index === 1
-                        ? 'bg-accentLime ring-accentLime/45'
-                        : index === 2
-                          ? 'bg-accentBlueSoft ring-accentBlueSoft/45'
-                          : 'bg-primarySoft ring-primarySoft/60'
-                    }`}
-                  >
-                    <Icon size={22} aria-hidden="true" />
-                  </div>
-                  <div>
-                    <h3 className="font-heading text-lg font-semibold text-text">
-                      {title}
-                    </h3>
-                    <p className="mt-2 leading-7 text-muted">{description}</p>
-                  </div>
-                </article>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <LimitationsSection />
         <CTASection />
-        <AuditForm onSubmit={handleAuditSubmit} isLoading={isLoading} apiError={error} />
-
-        <div ref={reportRef}>
-          {auditResult?.audit && (
-            <AuditReport
-              audit={auditResult.audit}
-              source={auditResult.source}
-              analysisStatus={auditResult.analysisStatus}
-              extractionMethod={auditResult.extractionMethod}
-              scoreAvailable={auditResult.scoreAvailable}
-              onRequestService={handleRequestService}
-            />
-          )}
-        </div>
 
         <div ref={contactRef}>
           <ContactRequestForm selectedService={selectedService} />

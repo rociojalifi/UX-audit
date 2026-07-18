@@ -28,7 +28,7 @@ export default function CreatorSection() {
             Who’s behind Clerify?
           </p>
           <h2 className="mt-3 font-heading text-3xl font-bold text-text sm:text-5xl">
-            A first AI direction, backed by human UX/UI judgment
+            Built by Rocio Jalifi, Software Developer · UX/UI Designer
           </h2>
 
           <div className="mt-6 space-y-5 text-lg leading-8 text-muted">
@@ -37,10 +37,9 @@ export default function CreatorSection() {
             </p>
             <p>
               I created Clerify to help small businesses understand why their website
-              feels confusing, unclear, or outdated. AI can give you a first
-              direction, but real UX/UI improvement needs human judgment: understanding
-              your audience, your offer, your goals, and how people actually experience
-              your website.
+              feels confusing, unclear, or outdated. The mini-audit gives you a
+              practical starting point; a deeper review adds judgment around your
+              audience, offer, goals, and how people actually experience your website.
             </p>
             <p className="font-semibold text-text">That’s where I come in.</p>
             <p>
@@ -65,10 +64,10 @@ export default function CreatorSection() {
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <a
               href="mailto:clerifyinfo@gmail.com?subject=Work%20with%20Rocio"
-              aria-label="Work with Rocio"
+              aria-label="Request human review"
               className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-6 py-3.5 font-semibold text-white shadow-card transition hover:-translate-y-0.5 hover:bg-primaryDark"
             >
-              Work with Rocio
+              Request human review
               <ArrowRight size={18} aria-hidden="true" />
             </a>
             <a

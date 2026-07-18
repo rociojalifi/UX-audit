@@ -17,18 +17,14 @@ export default function ServiceCard({
           : 'border-border'
       }`}
     >
-      <div className="space-y-4">
-        <div className="flex flex-wrap items-center gap-3">
-          {featured && (
-            <p className="inline-flex rounded-full bg-accentLime px-3 py-1 text-xs font-black uppercase tracking-[0.14em] text-primaryDark">
-              Recommended
-            </p>
-          )}
-          <span className="inline-flex rounded-full bg-primarySoft px-3.5 py-1.5 text-sm font-bold text-primary">
-            {price}
-          </span>
-        </div>
+      <div>
+        {featured && (
+          <p className="mb-4 inline-flex rounded-full bg-accentLime px-3 py-1 text-xs font-black uppercase tracking-[0.14em] text-primaryDark">
+            Recommended
+          </p>
+        )}
         <h3 className="font-heading text-2xl font-bold leading-tight text-text">{title}</h3>
+        <p className="mt-3 text-lg font-bold text-primary">{price}</p>
       </div>
 
       <p className="mt-4 leading-7 text-muted">{description}</p>

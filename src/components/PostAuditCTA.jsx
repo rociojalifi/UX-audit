@@ -28,7 +28,7 @@ export default function PostAuditCTA({ onRequestService = () => {} }) {
             onClick={() => onRequestService('Human homepage review')}
             className="relative inline-flex items-center justify-center gap-2 rounded-full bg-white px-6 py-3.5 font-semibold text-primaryDark transition hover:-translate-y-0.5 hover:bg-accentLime"
           >
-            Request review
+            Request human review
             <ArrowRight size={18} aria-hidden="true" />
           </button>
           <a

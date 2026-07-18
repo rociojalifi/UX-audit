@@ -45,6 +45,7 @@ const auditJsonSchema = {
 const systemPrompt = `You are a senior UX/UI designer. Give practical, specific, honest feedback based only on the supplied website context.
 The context identifies whether it came from a rendered DOM, static HTML fallback, or limited extraction. Do not claim to have inspected anything the context does not support.
 Do not punish a website for missing visible content if the extraction method could not access JavaScript-rendered DOM. In that case, clearly state the limitation and avoid giving a normal UX/UI score.
+When a normal score is appropriate, overallScore must be a 0-100 score, not a 0-10 score. For example, use 75 for a good but improvable page, not 7.5.
 Limitations must be short human-readable sentences only. Return only valid JSON matching the schema.`;
 
 export default async function handler(request, response) {
@@ -62,9 +63,21 @@ export default async function handler(request, response) {
     }
 
     const audit = await generateUxAudit({ url, businessType, mainGoal, websiteContext: extraction.context });
+    const scoreAvailable = extraction.extractionMethod === 'rendered';
+    if (!scoreAvailable) {
+      audit.summary.overallScore = null;
+      audit.limitations = sanitizeLimitations(
+        [
+          `Score unavailable because this audit used ${humanizeExtractionMethod(extraction.extractionMethod)} instead of rendered page analysis.`,
+          ...audit.limitations,
+        ],
+        extraction.context.limitations,
+      );
+    }
+
     return response.status(200).json({
       audit, source: 'ai', analysisStatus: 'complete', extractionMethod: extraction.extractionMethod,
-      scoreAvailable: true, score: audit.summary.overallScore, limitations: audit.limitations,
+      scoreAvailable, score: scoreAvailable ? audit.summary.overallScore : null, limitations: audit.limitations,
       websiteContextSummary: contextSummary(extraction.context),
     });
   } catch (error) {
@@ -92,8 +105,8 @@ async function extractWebsiteContext(url) {
   let staticResult;
   try {
     staticResult = await extractStaticContext(url);
-    // Avoid paying for a remote browser when the server already supplied useful HTML.
-    if (hasMeaningfulContent(staticResult.context) && !staticResult.isLikelyJavaScriptRendered) {
+    // When no renderer is configured, use strong static HTML as a content-only fallback.
+    if (!isRendererConfigured() && hasMeaningfulContent(staticResult.context) && !staticResult.isLikelyJavaScriptRendered) {
       return { analysisStatus: 'complete', extractionMethod: 'static-html', context: staticResult.context };
     }
   } catch {
@@ -162,6 +175,10 @@ function getBrowserlessEndpoint() {
   throw appError('Rendered page analysis is not configured. Add BROWSERLESS_TOKEN in the server environment.', 503, 'RENDERER_UNAVAILABLE');
 }
 
+function isRendererConfigured() {
+  return Boolean(process.env.BROWSERLESS_WS_ENDPOINT || process.env.BROWSERLESS_TOKEN);
+}
+
 async function extractStaticContext(url) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
@@ -199,6 +216,7 @@ function isLikelyJavaScriptRendered($, html) {
 function hasMeaningfulContent(context) { return context.bodyText.length >= MIN_MEANINGFUL_TEXT_LENGTH || context.headings.h1.length + context.headings.h2.length >= 2 || context.mainLinks.length + context.buttonTexts.length >= 5; }
 function friendlyRenderError(error) { if (/BROWSERLESS_TOKEN|BROWSERLESS_WS_ENDPOINT|RENDERER_UNAVAILABLE/i.test(error?.message || '')) return 'Rendered page analysis is not configured on this server.'; if (/Timeout/i.test(error?.message || '')) return 'Rendered page analysis timed out.'; return 'Rendered page analysis could not access this website.'; }
 function emptyContext(url) { return finalizeContext({ fetchedUrl: url, title: '', metaDescription: '', headings: { h1: [], h2: [], h3: [] }, bodyText: '', mainLinks: [], buttonTexts: [], navigationLinks: [], formFields: [], imageAltTexts: [], extractionSource: 'limited extraction', limitations: [] }); }
+function humanizeExtractionMethod(method = '') { return method.replace(/-/g, ' ') || 'limited extraction'; }
 
 async function generateUxAudit({ url, businessType, mainGoal, websiteContext }) {
   if (!process.env.OPENAI_API_KEY) throw appError('OPENAI_API_KEY is missing. Add it in Vercel Project Settings > Environment Variables.', 500, 'MISSING_API_KEY');
@@ -206,10 +224,20 @@ async function generateUxAudit({ url, businessType, mainGoal, websiteContext }) 
   const payload = await aiResponse.json().catch(() => null);
   if (!aiResponse.ok) throw appError(payload?.error?.message || 'The AI audit request failed.', aiResponse.status, 'AI_REQUEST_FAILED');
   const outputText = extractResponseText(payload); if (!outputText) throw appError('The AI response did not include a report.', 502, 'AI_RESPONSE_EMPTY');
-  try { const audit = JSON.parse(outputText); return { ...audit, limitations: sanitizeLimitations(audit.limitations, websiteContext.limitations) }; } catch { throw appError('The AI response was not valid JSON.', 502, 'AI_RESPONSE_INVALID'); }
+  try {
+    const audit = JSON.parse(outputText);
+    return {
+      ...audit,
+      summary: {
+        ...audit.summary,
+        overallScore: normalizeScore(audit.summary?.overallScore),
+      },
+      limitations: sanitizeLimitations(audit.limitations, websiteContext.limitations),
+    };
+  } catch { throw appError('The AI response was not valid JSON.', 502, 'AI_RESPONSE_INVALID'); }
 }
 
-function buildUserPrompt({ url, businessType, mainGoal, websiteContext }) { return `Audit this website from a UX/UI perspective.\n\nSubmitted URL: ${url}\nFetched URL: ${websiteContext.fetchedUrl}\nBusiness type: ${businessType || 'Not provided'}\nMain goal: ${mainGoal || 'Not provided'}\nExtraction method: ${websiteContext.extractionSource}\n\nAccuracy rules:\n- Only make claims supported by the context.\n- Do not claim to have inspected visual design, mobile layouts, interactions, or performance unless supported.\n- Do not punish missing visible content when rendered DOM could not be accessed.\n\nWebsite context:\n${JSON.stringify(websiteContext, null, 2)}`; }
+function buildUserPrompt({ url, businessType, mainGoal, websiteContext }) { return `Audit this website from a UX/UI perspective.\n\nSubmitted URL: ${url}\nFetched URL: ${websiteContext.fetchedUrl}\nBusiness type: ${businessType || 'Not provided'}\nMain goal: ${mainGoal || 'Not provided'}\nExtraction method: ${websiteContext.extractionSource}\n\nAccuracy rules:\n- Only make claims supported by the context.\n- Do not claim to have inspected visual design, mobile layouts, interactions, or performance unless supported.\n- Do not punish missing visible content when rendered DOM could not be accessed.\n- If you provide an overallScore, it must use a 0-100 scale. Do not return a 0-10 decimal score.\n\nWebsite context:\n${JSON.stringify(websiteContext, null, 2)}`; }
 
 function buildLimitedResponse({ url, businessType, mainGoal, extraction }) {
   const limitation = extraction.limitation;
@@ -228,3 +256,9 @@ function cleanText(value = '') { return String(value).replace(/\s+/g, ' ').trim(
 function uniqueNonEmpty(values) { return [...new Set(values.map(cleanText).filter(Boolean))]; }
 function sanitizeLimitations(limitations = [], contextLimitations = []) { const cleaned = uniqueNonEmpty([...limitations, ...contextLimitations, ...DEFAULT_LIMITATIONS]).map((limitation) => limitation.replace(/[{}<>]/g, '').trim()).filter((limitation) => limitation.length >= 12 && limitation.length <= 220).slice(0, 5); return cleaned.length >= 3 ? cleaned : DEFAULT_LIMITATIONS; }
 function limitText(value, maxLength) { const cleaned = cleanText(value); return cleaned.length <= maxLength ? cleaned : `${cleaned.slice(0, maxLength).trim()}...`; }
+function normalizeScore(value) {
+  const score = Number(value);
+  if (!Number.isFinite(score)) return null;
+  if (score > 0 && score <= 10) return Math.round(score * 10);
+  return Math.max(0, Math.min(100, Math.round(score)));
+}

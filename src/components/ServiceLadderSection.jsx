@@ -28,7 +28,7 @@ const services = [
       'Practical action checklist',
       '3 quick wins',
     ],
-    cta: 'Request review',
+    cta: 'Request human review',
     action: 'Human homepage review',
     featured: true,
   },
@@ -45,11 +45,11 @@ const services = [
       'Prioritized improvement roadmap',
       'Loom walkthrough',
     ],
-    cta: 'Request full audit',
+    cta: 'Request human review',
     action: 'Full UX/UI clarity audit',
   },
   {
-    title: 'Clarity redesign sprint',
+    title: 'Redesign support',
     price: 'Custom',
     description:
       'Turn the audit into improved design. I can help redesign your homepage, improve the structure, and support implementation.',
@@ -60,7 +60,7 @@ const services = [
       'Mobile layout suggestions',
       'Optional frontend implementation',
     ],
-    cta: 'Work with Rocio',
+    cta: 'Request human review',
     action: 'Redesign sprint',
   },
 ];
@@ -86,9 +86,8 @@ export default function ServiceLadderSection({ onRequestService }) {
             Choose how deep you want to go
           </h2>
           <p className="mt-5 text-lg leading-8 text-muted">
-            Start with an AI-assisted first diagnosis, then bring in human UX/UI judgment
-            when you want practical improvements, clearer decisions, and support turning
-            findings into a stronger website.
+            Start free, then choose a deeper human review or redesign support when
+            you want practical improvements and clearer next steps.
           </p>
         </div>
 
@@ -106,6 +105,31 @@ export default function ServiceLadderSection({ onRequestService }) {
           Prices can vary depending on page count, complexity, and whether you need
           implementation support.
         </p>
+
+        <div className="mx-auto mt-8 grid max-w-5xl gap-5 rounded-[2rem] border border-border bg-surface p-5 shadow-card md:grid-cols-[0.9fr_1.1fr] md:items-center sm:p-6">
+          <div>
+            <p className="text-sm font-bold uppercase tracking-[0.18em] text-accent">
+              No mystery redesigns
+            </p>
+            <h3 className="mt-2 font-heading text-2xl font-bold text-text">
+              Every paid review includes a clear owner update
+            </h3>
+            <p className="mt-3 leading-7 text-muted">
+              You’ll know what I reviewed, what I found, why it matters, and what I
+              recommend next.
+            </p>
+          </div>
+          <ul className="grid gap-3 sm:grid-cols-2">
+            {['What I reviewed', 'What I found', 'Why it matters', 'What happens next'].map((item) => (
+              <li
+                key={item}
+                className="rounded-2xl border border-border bg-bg px-4 py-3 text-sm font-semibold text-text"
+              >
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     </section>
   );

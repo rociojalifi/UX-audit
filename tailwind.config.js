@@ -8,7 +8,7 @@ export default {
         surface: '#FFFFFF',
         surfaceSoft: '#F1F2F8',
         text: '#151714',
-        muted: '#5F6673',
+        muted: '#4B5563',
         primary: '#5A4EFF',
         primaryDark: '#253A82',
         primarySoft: '#E8E7FF',
