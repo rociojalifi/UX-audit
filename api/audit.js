@@ -1,6 +1,9 @@
 import * as cheerio from 'cheerio';
 
 const OPENAI_RESPONSES_URL = 'https://api.openai.com/v1/responses';
+const RESEND_EMAIL_URL = 'https://api.resend.com/emails';
+const DEFAULT_TO_EMAIL = 'clerifyinfo@gmail.com';
+const DEFAULT_FROM_EMAIL = 'Clerify <onboarding@resend.dev>';
 const FETCH_TIMEOUT_MS = 9000;
 const RENDER_TIMEOUT_MS = 20000;
 const MAX_BODY_TEXT_LENGTH = 6500;
@@ -56,10 +59,12 @@ export default async function handler(request, response) {
     const url = normalizeWebsiteUrl(request.body?.url);
     const businessType = String(request.body?.businessType || '').trim().slice(0, 120);
     const mainGoal = String(request.body?.mainGoal || '').trim().slice(0, 120);
+    const email = normalizeEmail(request.body?.email);
+    const leadCapture = await captureAuditLead({ email, url, businessType, mainGoal });
     const extraction = await extractWebsiteContext(url);
 
     if (extraction.analysisStatus === 'limited') {
-      return response.status(200).json(buildLimitedResponse({ url, businessType, mainGoal, extraction }));
+      return response.status(200).json(buildLimitedResponse({ url, businessType, mainGoal, extraction, leadCapture }));
     }
 
     const audit = await generateUxAudit({ url, businessType, mainGoal, websiteContext: extraction.context });
@@ -78,7 +83,7 @@ export default async function handler(request, response) {
     return response.status(200).json({
       audit, source: 'ai', analysisStatus: 'complete', extractionMethod: extraction.extractionMethod,
       scoreAvailable, score: scoreAvailable ? audit.summary.overallScore : null, limitations: audit.limitations,
-      websiteContextSummary: contextSummary(extraction.context),
+      websiteContextSummary: contextSummary(extraction.context), leadCapture,
     });
   } catch (error) {
     return response.status(error.status || 500).json({
@@ -99,6 +104,171 @@ function normalizeWebsiteUrl(value) {
   try { parsed = new URL(value.trim()); } catch { throw appError('Please enter a valid website URL.', 400, 'INVALID_URL'); }
   if (!['http:', 'https:'].includes(parsed.protocol) || parsed.username || parsed.password) throw appError('Please enter a supported public http or https URL.', 400, 'INVALID_URL');
   return parsed.toString();
+}
+
+function normalizeEmail(value) {
+  const email = String(value || '').trim().toLowerCase().slice(0, 180);
+  if (!email) throw appError('Email is required to unlock the free mini-audit.', 400, 'EMAIL_REQUIRED');
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw appError('Please enter a valid email address.', 400, 'INVALID_EMAIL');
+  return email;
+}
+
+async function captureAuditLead({ email, url, businessType, mainGoal }) {
+  const payload = {
+    email,
+    url,
+    businessType: businessType || '',
+    mainGoal: mainGoal || '',
+    capturedAt: new Date().toISOString(),
+    source: 'free-audit-form',
+  };
+  const emailNotification = await sendAuditLeadNotification(payload);
+
+  if (!process.env.AUDIT_LEAD_WEBHOOK_URL) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.info('[Clerify] Audit lead captured locally:', { ...payload, email: redactEmail(email) });
+    }
+    return {
+      stored: emailNotification.sent,
+      method: emailNotification.sent ? 'email' : 'not_configured',
+      emailNotification,
+    };
+  }
+
+  try {
+    const response = await fetch(process.env.AUDIT_LEAD_WEBHOOK_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(process.env.AUDIT_LEAD_WEBHOOK_SECRET
+          ? { Authorization: `Bearer ${process.env.AUDIT_LEAD_WEBHOOK_SECRET}` }
+          : {}),
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      throw appError(`Lead capture webhook returned HTTP ${response.status}.`, 502, 'LEAD_CAPTURE_FAILED');
+    }
+
+    return {
+      stored: true,
+      method: emailNotification.sent ? 'webhook_and_email' : 'webhook',
+      emailNotification,
+    };
+  } catch (error) {
+    if (process.env.REQUIRE_AUDIT_LEAD_CAPTURE === 'true') {
+      throw error.status ? error : appError('The audit lead could not be captured.', 502, 'LEAD_CAPTURE_FAILED');
+    }
+
+    console.warn('[Clerify] Audit lead capture failed:', error.message);
+    return { stored: false, method: 'webhook_failed' };
+  }
+}
+
+async function sendAuditLeadNotification(payload) {
+  const resendApiKey = process.env.RESEND_API_KEY;
+
+  if (!resendApiKey) {
+    return { sent: false, method: 'resend_not_configured' };
+  }
+
+  const toEmail = process.env.AUDIT_LEAD_TO_EMAIL || process.env.CONTACT_TO_EMAIL || DEFAULT_TO_EMAIL;
+  const fromEmail = process.env.AUDIT_LEAD_FROM_EMAIL || process.env.CONTACT_FROM_EMAIL || DEFAULT_FROM_EMAIL;
+
+  try {
+    const resendResponse = await fetch(RESEND_EMAIL_URL, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${resendApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: fromEmail,
+        to: [toEmail],
+        reply_to: payload.email,
+        subject: `New Clerify free audit lead: ${payload.url}`,
+        text: buildAuditLeadText(payload),
+        html: buildAuditLeadHtml(payload),
+      }),
+    });
+    const resendPayload = await safeJson(resendResponse);
+
+    if (!resendResponse.ok) {
+      throw new Error(
+        resendPayload?.message ||
+          resendPayload?.error?.message ||
+          `Resend returned HTTP ${resendResponse.status}.`,
+      );
+    }
+
+    return { sent: true, method: 'resend', to: toEmail };
+  } catch (error) {
+    console.warn('[Clerify] Audit lead email failed:', error.message);
+    return { sent: false, method: 'resend_failed' };
+  }
+}
+
+function buildAuditLeadText(payload) {
+  return [
+    'New Clerify free audit lead',
+    '',
+    `Email: ${payload.email}`,
+    `Website: ${payload.url}`,
+    `Business type: ${payload.businessType || 'Not provided'}`,
+    `Main goal: ${payload.mainGoal || 'Not provided'}`,
+    `Captured at: ${payload.capturedAt}`,
+  ].join('\n');
+}
+
+function buildAuditLeadHtml(payload) {
+  const rows = [
+    ['Email', payload.email],
+    ['Website', payload.url],
+    ['Business type', payload.businessType || 'Not provided'],
+    ['Main goal', payload.mainGoal || 'Not provided'],
+    ['Captured at', payload.capturedAt],
+  ];
+
+  return `
+    <div style="font-family:Arial,sans-serif;line-height:1.6;color:#151714">
+      <h1 style="font-size:22px;margin:0 0 16px">New Clerify free audit lead</h1>
+      <table style="border-collapse:collapse;width:100%;max-width:640px">
+        ${rows
+          .map(
+            ([label, value]) => `
+              <tr>
+                <th style="text-align:left;padding:8px 12px;border:1px solid #DDE2EA;background:#F1F2F8">${escapeHtml(label)}</th>
+                <td style="padding:8px 12px;border:1px solid #DDE2EA">${escapeHtml(value)}</td>
+              </tr>
+            `,
+          )
+          .join('')}
+      </table>
+    </div>
+  `;
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
+}
+
+async function safeJson(fetchResponse) {
+  try {
+    return await fetchResponse.json();
+  } catch {
+    return null;
+  }
+}
+
+function redactEmail(email) {
+  const [name, domain] = email.split('@');
+  return `${name.slice(0, 2)}***@${domain}`;
 }
 
 async function extractWebsiteContext(url) {
@@ -239,14 +409,14 @@ async function generateUxAudit({ url, businessType, mainGoal, websiteContext }) 
 
 function buildUserPrompt({ url, businessType, mainGoal, websiteContext }) { return `Audit this website from a UX/UI perspective.\n\nSubmitted URL: ${url}\nFetched URL: ${websiteContext.fetchedUrl}\nBusiness type: ${businessType || 'Not provided'}\nMain goal: ${mainGoal || 'Not provided'}\nExtraction method: ${websiteContext.extractionSource}\n\nAccuracy rules:\n- Only make claims supported by the context.\n- Do not claim to have inspected visual design, mobile layouts, interactions, or performance unless supported.\n- Do not punish missing visible content when rendered DOM could not be accessed.\n- If you provide an overallScore, it must use a 0-100 scale. Do not return a 0-10 decimal score.\n\nWebsite context:\n${JSON.stringify(websiteContext, null, 2)}`; }
 
-function buildLimitedResponse({ url, businessType, mainGoal, extraction }) {
+function buildLimitedResponse({ url, businessType, mainGoal, extraction, leadCapture }) {
   const limitation = extraction.limitation;
   const limitations = [
     limitation,
     `Renderer status: ${extraction.renderError || 'Unavailable.'}`,
     'No normal UX/UI score was generated from the static HTML shell.',
   ];
-  return { source: 'limited', analysisStatus: 'limited', extractionMethod: 'failed', scoreAvailable: false, score: null, limitations, websiteContextSummary: contextSummary(extraction.context), audit: { summary: { websiteUrl: url, businessType: businessType || 'Not provided', mainGoal: mainGoal || 'Not provided', firstImpression: limitation, overallScore: null }, positives: [], uxIssues: [], uiIssues: [], priorityFixes: [], finalRecommendation: 'Enable rendered page analysis and rerun this audit for evidence-based UX/UI feedback.', ctaSuggestion: { headline: 'Rendered analysis required', body: 'This website needs a browser-rendered audit before Clerify can make fair recommendations.', primaryButton: 'Try again later', secondaryButton: 'Request a human review' }, limitations } };
+  return { source: 'limited', analysisStatus: 'limited', extractionMethod: 'failed', scoreAvailable: false, score: null, limitations, websiteContextSummary: contextSummary(extraction.context), leadCapture, audit: { summary: { websiteUrl: url, businessType: businessType || 'Not provided', mainGoal: mainGoal || 'Not provided', firstImpression: limitation, overallScore: null }, positives: [], uxIssues: [], uiIssues: [], priorityFixes: [], finalRecommendation: 'Enable rendered page analysis and rerun this audit for evidence-based UX/UI feedback.', ctaSuggestion: { headline: 'Rendered analysis required', body: 'This website needs a browser-rendered audit before Clerify can make fair recommendations.', primaryButton: 'Try again later', secondaryButton: 'Request a human review' }, limitations } };
 }
 function contextSummary(context) { return { fetchedUrl: context.fetchedUrl, title: context.title, h1: context.headings?.h1 || [], ctas: context.obviousCtas || [], screenshotCaptured: Boolean(context.screenshotCaptured) }; }
 function extractResponseText(responseJson) { if (typeof responseJson?.output_text === 'string') return responseJson.output_text; return (responseJson?.output || []).flatMap((output) => output.content || []).filter((content) => content.type === 'output_text').map((content) => content.text).join('\n').trim(); }

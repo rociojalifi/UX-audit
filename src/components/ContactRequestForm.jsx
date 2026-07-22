@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Send } from 'lucide-react';
 
 const serviceOptions = [
+  'PDF clarity checklist',
   'Human homepage review',
   'Full UX/UI clarity audit',
   'Redesign sprint',

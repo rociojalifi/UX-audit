@@ -17,6 +17,20 @@ const services = [
     action: 'audit',
   },
   {
+    title: 'PDF clarity checklist',
+    price: '€19',
+    description:
+      'A downloadable checklist version of your audit findings so you can review priorities and work through fixes yourself.',
+    includes: [
+      'One-page clarity checklist',
+      'Summary of priority fixes',
+      'CTA and offer clarity prompts',
+      'No live human review',
+    ],
+    cta: 'Request checklist',
+    action: 'PDF clarity checklist',
+  },
+  {
     title: 'Human homepage review',
     price: 'From €149',
     description:
@@ -33,29 +47,14 @@ const services = [
     featured: true,
   },
   {
-    title: 'UX/UI clarity audit',
-    price: 'From €399',
-    description:
-      'A deeper audit for your homepage and key pages with a prioritized roadmap for better clarity, trust, and conversion.',
-    includes: [
-      'Homepage + key page review',
-      'CTA and navigation review',
-      'Trust signals review',
-      'Mobile UX/UI review',
-      'Prioritized improvement roadmap',
-      'Loom walkthrough',
-    ],
-    cta: 'Request human review',
-    action: 'Full UX/UI clarity audit',
-  },
-  {
     title: 'Redesign support',
     price: 'Custom',
     description:
-      'Turn the audit into improved design. I can help redesign your homepage, improve the structure, and support implementation.',
+      'Turn the audit into improved design, deeper UX/UI clarity work, or implementation support for your key pages.',
     includes: [
-      'UX/UI audit',
+      'Deeper UX/UI clarity audit',
       'Homepage redesign direction',
+      'Key page review',
       'Copy hierarchy improvements',
       'Mobile layout suggestions',
       'Optional frontend implementation',

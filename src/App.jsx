@@ -11,12 +11,15 @@ import {
 } from 'lucide-react';
 import Navbar from './components/Navbar';
 import HeroSection from './components/HeroSection';
+import EmailUnlockStep from './components/EmailUnlockStep';
 import FeatureCard from './components/FeatureCard';
 import AuditReport from './components/AuditReport';
 import CTASection from './components/CTASection';
 import ExampleInsightCard from './components/ExampleInsightCard';
 import CreatorSection from './components/CreatorSection';
+import SocialProofSection from './components/SocialProofSection';
 import ServiceLadderSection from './components/ServiceLadderSection';
+import StickyPricingButton from './components/StickyPricingButton';
 import ContactRequestForm from './components/ContactRequestForm';
 import Footer from './components/Footer';
 
@@ -75,6 +78,8 @@ export default function App() {
   const [auditResult, setAuditResult] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [pendingAuditRequest, setPendingAuditRequest] = useState(null);
+  const [emailUnlockError, setEmailUnlockError] = useState('');
   const [selectedService, setSelectedService] = useState('Human homepage review');
   const reportRef = useRef(null);
   const contactRef = useRef(null);
@@ -86,9 +91,33 @@ export default function App() {
     }, 80);
   };
 
-  const handleAuditSubmit = async (formData) => {
+  const handleAuditSubmit = (formData) => {
+    setError('');
+    setAuditResult(null);
+    setEmailUnlockError('');
+    setPendingAuditRequest(formData);
+  };
+
+  const handleEmailUnlock = async (email) => {
+    if (!pendingAuditRequest) return;
+
+    await runAuditRequest({
+      ...pendingAuditRequest,
+      email,
+    });
+  };
+
+  const handleEmailBack = () => {
+    if (isLoading) return;
+
+    setPendingAuditRequest(null);
+    setEmailUnlockError('');
+  };
+
+  const runAuditRequest = async (formData) => {
     setIsLoading(true);
     setError('');
+    setEmailUnlockError('');
     setAuditResult(null);
 
     try {
@@ -99,6 +128,7 @@ export default function App() {
           url: formData.websiteUrl,
           businessType: formData.businessType,
           mainGoal: formData.mainGoal,
+          email: formData.email,
         }),
       });
       const responseText = await response.text();
@@ -116,11 +146,12 @@ export default function App() {
       }
 
       setAuditResult(payload);
+      setPendingAuditRequest(null);
       window.setTimeout(() => {
         reportRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 100);
     } catch (requestError) {
-      setError(requestError.message);
+      setEmailUnlockError(requestError.message);
     } finally {
       setIsLoading(false);
     }
@@ -135,6 +166,16 @@ export default function App() {
           isLoading={isLoading}
           apiError={error}
         />
+
+        {pendingAuditRequest && (
+          <EmailUnlockStep
+            auditRequest={pendingAuditRequest}
+            isLoading={isLoading}
+            error={emailUnlockError}
+            onBack={handleEmailBack}
+            onSubmit={handleEmailUnlock}
+          />
+        )}
 
         <div ref={reportRef}>
           {auditResult?.audit && (
@@ -173,6 +214,7 @@ export default function App() {
 
         <ExampleInsightCard />
         <CreatorSection />
+        <SocialProofSection />
         <ServiceLadderSection onRequestService={handleRequestService} />
         <CTASection />
 
@@ -180,6 +222,7 @@ export default function App() {
           <ContactRequestForm selectedService={selectedService} />
         </div>
       </main>
+      <StickyPricingButton />
       <Footer />
     </div>
   );
